@@ -1,27 +1,48 @@
-import os
+"""
+Konfiguracja i inicjalizacja połączenia z bazą danych.
+
+Używa Settings (pydantic-settings) jako jedynego źródła prawdy o URL bazy —
+elimminuje konieczność ręcznego składania URL z os.getenv.
+Eksportuje `DATABASE_URL` jako zmienną modułu dla zgodności z alembic/env.py.
+"""
+
+from __future__ import annotations
+
+from typing import Generator
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
-from dotenv import load_dotenv
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-# Załaduj zmienne z .env dla uruchomień lokalnych
-load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+from config import get_settings
 
-POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "secret")
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
-POSTGRES_DB = os.getenv("POSTGRES_DB", "it_os_db")
+# Pobieramy ustawienia przez singleton — DATABASE_URL pochodzi z Settings
+_settings = get_settings()
 
-DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+# Eksportujemy DATABASE_URL dla zgodności z alembic/env.py (importuje go bezpośrednio)
+DATABASE_URL: str = _settings.DATABASE_URL
 
+# Silnik SQLAlchemy — jedno połączenie współdzielone przez całą aplikację
 engine = create_engine(DATABASE_URL)
+
+# Fabryka sesji — autocommit=False wymaga jawnego commit()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Klasa bazowa dla modeli ORM
 Base = declarative_base()
 
-def get_db():
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    Dependency FastAPI — dostarcza sesję bazy danych dla pojedynczego requesta.
+
+    Gwarantuje zamknięcie sesji nawet w przypadku wyjątku (blok finally).
+
+    Yields:
+        Aktywna sesja SQLAlchemy gotowa do użycia w endpoincie.
+    """
     db = SessionLocal()
     try:
         yield db
     finally:
+        # Zawsze zamykamy sesję — zwalniamy połączenie do puli
         db.close()

@@ -1,0 +1,54 @@
+<!-- Pasek nawigacyjny Shell — partial wielokrotnego użytku -->
+<div class="navbar bg-base-100 shadow-lg px-4">
+  <div class="navbar-start">
+    <!-- Logo / nazwa systemu -->
+    <a
+      href="/"
+      class="btn btn-ghost text-xl font-bold"
+      hx-get="/"
+      hx-target="#main-content"
+      hx-push-url="true"
+    >
+      IT Project OS
+    </a>
+  </div>
+
+  <div class="navbar-center hidden lg:flex">
+    <ul class="menu menu-horizontal px-1 gap-1">
+      <!-- Moduł Issues ładowany przez HTMX do #main-content -->
+      <li>
+        <button
+          class="btn btn-ghost btn-sm"
+          hx-get="/modules/issues/"
+          hx-target="#main-content"
+          hx-push-url="true"
+        >
+          Issues
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="navbar-end gap-2">
+    {% if user %}
+      <!-- Awatar z menu użytkownika -->
+      <div class="dropdown dropdown-end">
+        <button class="btn btn-ghost btn-circle avatar placeholder">
+          <div class="bg-neutral text-neutral-content rounded-full w-10">
+            <span class="text-sm">
+              {{ (user.name or user.preferred_username or "?")[0]|upper }}
+            </span>
+          </div>
+        </button>
+        <ul class="menu menu-sm dropdown-content mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52">
+          <li class="menu-title px-3 py-1">
+            <span class="text-xs truncate">{{ user.email }}</span>
+          </li>
+          <li><a href="/logout" class="text-error">Wyloguj</a></li>
+        </ul>
+      </div>
+    {% else %}
+      <a href="/login" class="btn btn-primary btn-sm">Zaloguj</a>
+    {% endif %}
+  </div>
+</div>

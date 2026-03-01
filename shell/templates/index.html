@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}IT Project OS — Panel Główny{% endblock %}
+
+{% block content %}
+<div class="hero min-h-[60vh]">
+  <div class="hero-content text-center">
+    <div class="max-w-lg">
+      <h1 class="text-5xl font-bold">IT Project OS</h1>
+      <p class="py-6 text-base-content/70">
+        Zintegrowana platforma zarządzania projektami IT.
+        Moduły ładowane są dynamicznie przez HTMX.
+      </p>
+
+      {% if user %}
+        <!-- Powitanie zalogowanego użytkownika -->
+        <div class="alert alert-success mb-4">
+          <span>Witaj, <strong>{{ user.name or user.preferred_username or user.email }}</strong>!</span>
+        </div>
+        <div class="flex gap-4 justify-center flex-wrap">
+          <!-- Przykładowy link do modułu Issues — ładuje partial HTMX do #main-content -->
+          <button
+            class="btn btn-primary"
+            hx-get="/modules/issues/"
+            hx-target="#main-content"
+            hx-push-url="true"
+          >
+            Przejdź do Issues
+          </button>
+          <a href="/logout" class="btn btn-outline btn-error">Wyloguj</a>
+        </div>
+      {% else %}
+        <!-- Zachęta do zalogowania -->
+        <div class="alert alert-info mb-4">
+          <span>Zaloguj się, aby uzyskać dostęp do modułów platformy.</span>
+        </div>
+        <a href="/login" class="btn btn-primary btn-lg">Zaloguj przez SSO</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
