@@ -1,0 +1,21 @@
+version: "3.8"
+
+# Ten plik służy deweloperowi do nadpisywania konfiguracji podstawowej z docker-compose.yml
+# Zapewnia np. "hot-reloading" bez konieczności ciągłego budowania obrazu Docker.
+services:
+  shell:
+    # Uruchamiamy FastAPI w trybie reload
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    # Podpinamy lokalny folder, aby zmiany na żywo odzwierciedlały się w kontenerze
+    volumes:
+      - ./shell:/app
+    # Opcjonalnie udostępniamy port bezpośrednio (z pominięciem Nginx do debugowania)
+    ports:
+      - "8001:8000"
+
+  module-issues:
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      - ./module-issues:/app
+    ports:
+      - "8002:8000"

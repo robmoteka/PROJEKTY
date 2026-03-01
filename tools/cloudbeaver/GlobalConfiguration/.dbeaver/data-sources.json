@@ -1,0 +1,25 @@
+{
+  "folders": {},
+  "connections": {
+    "postgres_docker": {
+      "provider": "postgresql",
+      "driver": "postgres-jdbc",
+      "name": "Postgres (Docker)",
+      "save-password": false,
+      "show-system-objects": true,
+      "read-only": false,
+      "configuration": {
+        "host": "postgres",
+        "port": "5432",
+        "database": "it_os_db",
+        "url": "jdbc:postgresql://postgres:5432/it_os_db",
+        "configurationType": "MANUAL",
+        "type": "dev",
+        "auth-model": "native",
+        "auth-properties": {
+          "user": "postgres"
+        }
+      }
+    }
+  }
+}

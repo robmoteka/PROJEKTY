@@ -1,0 +1,39 @@
+# Zmienne środowiskowe — nigdy nie commituj sekretów
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Wirtualne środowiska
+.venv/
+venv/
+env/
+ENV/
+
+# Alembic — generowane automatycznie
+shell/alembic/versions/*.py
+module-issues/alembic/versions/*.py
+
+# Docker / dane persystentne
+postgres_data/
+*.log
+
+# IDE / edytory
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Tailwind build output (generowany przez CLI)
+static/style.css
