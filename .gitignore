@@ -37,3 +37,8 @@ Thumbs.db
 
 # Tailwind build output (generowany przez CLI)
 static/style.css
+
+
+# Tylko dla agentury
+AGENTS.md
+
