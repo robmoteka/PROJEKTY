@@ -13,10 +13,12 @@
 | FastAPI              | ≥ 0.110.0          | Framework HTTP (Shell + moduły)            |
 | Uvicorn              | ≥ 0.27.0           | Serwer ASGI                                |
 | Jinja2               | ≥ 3.1.3            | Silnik szablonów HTML (partiale HTMX)      |
-| SQLAlchemy           | ≥ 2.0.28           | ORM / warstwa dostępu do danych            |
+| SQLAlchemy           | ≥ 2.0.28           | ORM / warstwa dostępu do danych (async)    |
 | Alembic              | ≥ 1.13.1           | Migracje schematu bazy danych              |
-| psycopg2-binary      | ≥ 2.9.9            | Sterownik PostgreSQL                       |
-| python-dotenv        | ≥ 1.0.1            | Ładowanie zmiennych środowiskowych z .env  |
+| asyncpg              | ≥ 0.29.0           | Asynchroniczny sterownik PostgreSQL        |
+| psycopg2-binary      | ≥ 2.9.9            | Synchroniczny sterownik PostgreSQL (Alembic, skrypty) |
+| python-dotenv        | ≥ 1.0.1            | Ładowanie zmiennych środowiskowych z `.env`|
+| Pydantic             | ≥ 2.6.0            | Walidacja danych i schematy request/response|
 
 ## 🌐 Frontend
 
@@ -31,8 +33,10 @@
 | Technologia   | Wersja        | Rola                        |
 |----------------|---------------|-----------------------------|
 | PostgreSQL     | 15 (Alpine)   | Główna baza danych systemu  |
+
 > **Konwencja schematów:** każdy moduł ma własny schemat PostgreSQL (`shell`, `issues`, `kanban`, …).
 > Tabele aplikacji nigdy nie trafiają do schematu `public`. Keycloak używa schematu `keycloak`.
+
 ## 🔐 Autentykacja / SSO
 
 | Technologia       | Rola                                        |
@@ -62,8 +66,9 @@
 | Technologia            | Rola                                              |
 |-------------------------|---------------------------------------------------|
 | Pytest                  | Testy jednostkowe i integracyjne                  |
+| pytest-asyncio          | Obsługa async testów w Pytest                     |
 | httpx (AsyncClient)     | Testy integracyjne endpointów FastAPI             |
-| Playwright / Cypress    | Testy E2E (scenariusze użytkownika, HTMX swap)   |
+| Playwright              | Testy E2E (scenariusze użytkownika, HTMX swap)   |
 
 ## 🔧 Jakość kodu
 

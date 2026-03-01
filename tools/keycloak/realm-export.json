@@ -60,9 +60,6 @@
       "webOrigins": [
         "http://localhost:5050"
       ],
-      "postLogoutRedirectUris": [
-        "http://localhost:5050/"
-      ],
       "attributes": {
         "post.logout.redirect.uris": "http://localhost:5050/"
       },

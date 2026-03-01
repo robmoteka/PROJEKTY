@@ -14,7 +14,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Annotated, Any
 
-from fastapi import Cookie, Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from config import Settings, get_settings
@@ -25,9 +25,9 @@ logger = logging.getLogger(__name__)
 
 
 async def get_current_user(
+    request: Request,
     settings: Annotated[Settings, Depends(get_settings)],
     db: Annotated[Session, Depends(get_db)],
-    session: Annotated[str | None, Cookie()] = None,
 ) -> dict[str, Any] | None:
     """
     Wyszukuje dane aktualnie zalogowanego użytkownika na podstawie session_id.
@@ -38,13 +38,15 @@ async def get_current_user(
     rekordu z DB) bez czekania na wygaśnięcie tokenu JWT.
 
     Args:
+        request: Obiekt zapytania użyty do odczytania ciasteczek.
         settings: Ustawienia aplikacji (nazwa cookie sesji).
         db: Sesja bazy danych.
-        session: Wartość HttpOnly cookie 'session' (session_id — NIE JWT!).
 
     Returns:
         Słownik z danymi użytkownika lub None jeśli nie zalogowany / sesja wygasła.
     """
+    session = request.cookies.get(settings.SESSION_COOKIE_NAME)
+
     # Brak cookie = użytkownik niezalogowany
     if not session:
         return None

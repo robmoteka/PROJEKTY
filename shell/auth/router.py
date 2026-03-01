@@ -97,7 +97,7 @@ async def login(
 # --------------------------------------------------------------------------- #
 
 
-@router.get("/callback", summary="Obsługuje callback OIDC po zalogowaniu")
+@router.get("/auth/callback", summary="Obsługuje callback OIDC po zalogowaniu")
 async def callback(
     request: Request,
     settings: Annotated[Settings, Depends(get_settings)],
@@ -244,10 +244,10 @@ async def callback(
 
 @router.get("/logout", summary="Wylogowanie użytkownika")
 async def logout(
+    request: Request,
     settings: Annotated[Settings, Depends(get_settings)],
     oidc: Annotated[OIDCService, Depends(get_oidc_service)],
     db: Annotated[Session, Depends(get_db)],
-    session: Annotated[str | None, Cookie()] = None,
 ) -> RedirectResponse:
     """
     Wylogowuje użytkownika lokalnie i przekierowuje do OIDC end_session_endpoint.
@@ -260,13 +260,16 @@ async def logout(
     5. Przekierowuje przeglądarkę do OIDC end_session_endpoint.
 
     Args:
-        session: Cookie z session_id (wstrzykiwane automatycznie przez FastAPI).
+        request: Obiekt zapytania użyty do odczytania ciasteczek.
+        settings: Zależność ustawień.
+        oidc: Zależność serwisu OIDC.
         db: Sesja bazy danych (wstrzykiwana przez FastAPI DI).
 
     Returns:
         Odpowiedź 302 przekierowująca do OIDC end_session_endpoint lub na /.
     """
     # Szukamy rekordu sesji w bazie danych na podstawie wartości cookie
+    session = request.cookies.get(settings.SESSION_COOKIE_NAME)
     id_token_hint: str | None = None
     if session:
         db_session = (
