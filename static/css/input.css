@@ -1,0 +1,35 @@
+/* Źródłowy plik Tailwind CSS — do kompilacji w v1.0 */
+/* Komenda: npx tailwindcss -i static/css/input.css -o static/css/style.css --watch */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Animacja podmiany treści HTMX — płynne przejście */
+#main-content {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Stan osiadania po załadowaniu HTMX — lekkie wygaszenie */
+.htmx-settling #main-content {
+  opacity: 0.5;
+}
+
+/* Globalny wskaźnik ładowania — domyślnie ukryty */
+.htmx-indicator {
+  display: none;
+}
+
+/* Wskaźnik widoczny podczas aktywnego requestu HTMX */
+.htmx-request .htmx-indicator {
+  display: inline-block;
+}
+
+/* Wskaźnik ładowania na pasku postępu — wyświetlany na body */
+body.htmx-request #htmx-loading {
+  display: block;
+}
+
+#htmx-loading {
+  display: none;
+}

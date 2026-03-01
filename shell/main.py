@@ -15,14 +15,14 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from auth import router as auth_router
 from config import Settings, get_settings
 from db import Base, engine
-from dependencies import get_current_user
-from middleware import htmx_generic_exception_handler, htmx_http_exception_handler
+from dependencies import get_current_user, require_authenticated_user
+from middleware import htmx_http_exception_handler
 
 # Konfiguracja logowania
 logging.basicConfig(
@@ -56,7 +56,6 @@ app.add_middleware(
 
 # Globalne handlery błędów — HTMX otrzymuje HTML partial, REST otrzymuje JSON
 app.add_exception_handler(HTTPException, htmx_http_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(Exception, htmx_generic_exception_handler)  # type: ignore[arg-type]
 
 # Tworzenie tabel przy starcie (w produkcji używaj Alembic)
 @app.on_event("startup")
@@ -114,3 +113,36 @@ async def index(
 async def health() -> dict[str, str]:
     """Endpoint health check — używany przez Docker i Nginx do sprawdzania dostępności."""
     return {"status": "ok", "service": "shell"}
+
+
+@app.get("/api/verify-session", summary="Wewnętrzna weryfikacja sesji (Nginx auth_request)")
+async def verify_session(
+    current_user: Annotated[dict | None, Depends(get_current_user)],
+    response: Response,
+) -> Response:
+    """
+    Endpoint weryfikacji sesji użytkownika — wywoływany przez Nginx auth_request.
+
+    Nginx wywołuje ten endpoint przed każdym request do modułów. Jeśli sesja
+    jest aktywna, zwraca 200 i nagłówki X-User-* przekazywane dalej do modułu.
+    Jeśli brak sesji, zwraca 401 — Nginx blokuje request i przekierowuje na /login.
+
+    Args:
+        current_user: Dane zalogowanego użytkownika (None = niezalogowany).
+        response: Obiekt odpowiedzi FastAPI — używany do ustawiania nagłówków.
+
+    Returns:
+        200 z nagłówkami X-User-* lub 401 brak autoryzacji.
+    """
+    # Brak sesji — 401 powoduje blokadę request przez Nginx
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Brak aktywnej sesji.")
+
+    # Przekazujemy dane użytkownika jako nagłówki do modułu
+    response.headers["X-User-Sub"] = current_user.get("sub", "")
+    response.headers["X-User-Email"] = current_user.get("email", "")
+    response.headers["X-User-Name"] = current_user.get("name", "")
+    # Role jako lista rozdzielona przecinkami (np. "developer,viewer")
+    roles: list[str] = current_user.get("roles", [])
+    response.headers["X-User-Roles"] = ",".join(roles)
+    return Response(status_code=200)

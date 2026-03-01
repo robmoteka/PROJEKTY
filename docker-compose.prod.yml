@@ -1,0 +1,80 @@
+# Nakładka produkcyjna docker-compose dla środowiska VPS.
+# Uruchamiaj łącząc z bazowym: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Kluczowe różnice względem docker-compose.yml (dev):
+# - Serwis gateway (nginx kontener) wyłączony — zastępuje go nginx VPS
+# - Porty aplikacji eksponowane TYLKO na 127.0.0.1 (nie na 0.0.0.0)
+# - Obrazy pobierane z ghcr.io zamiast budowania lokalnie
+# - Healthchecki dla postgres, shell i module-issues
+# - PostgreSQL bez portu na hoście (dostępny tylko wewnątrz Docker network)
+
+version: "3.8"
+
+services:
+  # -------------------------------------------------------------------------
+  # Serwis gateway (kontener nginx) WYŁĄCZONY na produkcji.
+  # Rolę gateway przejmuje nginx zainstalowany na VPS.
+  # -------------------------------------------------------------------------
+  gateway:
+    profiles: ["dev-only"]   # profil dev-only wyklucza z domyślnego uruchomienia
+
+  # -------------------------------------------------------------------------
+  # Shell — eksponowany TYLKO na localhost VPS (127.0.0.1:8001)
+  # Nginx VPS robi proxy_pass do tego portu dla ścieżki /
+  # -------------------------------------------------------------------------
+  shell:
+    image: ghcr.io/robmoteka/it-project-os-shell:latest
+    build: null              # wyłącz budowanie z Dockerfile — używamy gotowego obrazu
+    ports:
+      - "127.0.0.1:8001:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # -------------------------------------------------------------------------
+  # Module Issues — eksponowany TYLKO na localhost VPS (127.0.0.1:8002)
+  # Nginx VPS robi proxy_pass do tego portu dla ścieżki /modules/issues/
+  # -------------------------------------------------------------------------
+  module-issues:
+    image: ghcr.io/robmoteka/it-project-os-module-issues:latest
+    build: null
+    ports:
+      - "127.0.0.1:8002:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # -------------------------------------------------------------------------
+  # PostgreSQL — bez ekspozycji portu na hosta w produkcji.
+  # Dostępny wyłącznie wewnątrz sieci Docker (shell i module-issues łączą się
+  # po nazwie serwisu: postgres:5432).
+  # -------------------------------------------------------------------------
+  postgres:
+    ports: []
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------------------
+  # Narzędzia administracyjne DB — dostępne tylko lokalnie na VPS
+  # Dostęp przez SSH tunnel: ssh -L 5080:127.0.0.1:5080 user@vps
+  # -------------------------------------------------------------------------
+  pgadmin:
+    ports:
+      - "127.0.0.1:5080:80"
+
+  adminer:
+    ports:
+      - "127.0.0.1:5081:8080"
+
+  cloudbeaver:
+    ports:
+      - "127.0.0.1:5082:8978"

@@ -31,7 +31,8 @@
 | Technologia   | Wersja        | Rola                        |
 |----------------|---------------|-----------------------------|
 | PostgreSQL     | 15 (Alpine)   | Główna baza danych systemu  |
-
+> **Konwencja schematów:** każdy moduł ma własny schemat PostgreSQL (`shell`, `issues`, `kanban`, …).
+> Tabele aplikacji nigdy nie trafiają do schematu `public`. Keycloak używa schematu `keycloak`.
 ## 🔐 Autentykacja / SSO
 
 | Technologia       | Rola                                        |

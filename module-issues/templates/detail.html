@@ -1,0 +1,99 @@
+<!-- Karta szczegółów zgłoszenia — HTML partial -->
+<div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
+  <div class="card-body">
+
+    <!-- Nagłówek karty z tytułem i ID -->
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <p class="text-sm text-base-content/50 mb-1">Zgłoszenie #{{ issue.id }}</p>
+        <h2 class="card-title text-2xl">{{ issue.title }}</h2>
+      </div>
+      <!-- Odznaka statusu w prawym górnym rogu -->
+      <span class="badge badge-outline badge-lg">{{ issue.status }}</span>
+    </div>
+
+    <!-- Opis zgłoszenia -->
+    {% if issue.description %}
+    <div class="mb-4">
+      <p class="text-sm font-semibold text-base-content/70 mb-1">Opis</p>
+      <p class="text-base-content whitespace-pre-wrap">{{ issue.description }}</p>
+    </div>
+    {% else %}
+    <p class="text-base-content/40 italic mb-4">Brak opisu.</p>
+    {% endif %}
+
+    <!-- Siatka metadanych -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <!-- Priorytet -->
+      <div>
+        <p class="text-sm font-semibold text-base-content/70">Priorytet</p>
+        <p class="text-base-content">{{ issue.priority }}</p>
+      </div>
+      <!-- Autor -->
+      <div>
+        <p class="text-sm font-semibold text-base-content/70">Autor</p>
+        <p class="text-base-content">{{ issue.author_name or '—' }}</p>
+      </div>
+      <!-- Przypisany -->
+      <div>
+        <p class="text-sm font-semibold text-base-content/70">Przypisany</p>
+        <p class="text-base-content">{{ issue.assignee_name or '—' }}</p>
+      </div>
+      <!-- Data utworzenia -->
+      <div>
+        <p class="text-sm font-semibold text-base-content/70">Utworzono</p>
+        <p class="text-base-content">
+          {% if issue.created_at %}
+            {{ issue.created_at.strftime('%d.%m.%Y %H:%M') }}
+          {% else %}—{% endif %}
+        </p>
+      </div>
+      <!-- Data aktualizacji -->
+      <div>
+        <p class="text-sm font-semibold text-base-content/70">Ostatnia zmiana</p>
+        <p class="text-base-content">
+          {% if issue.updated_at %}
+            {{ issue.updated_at.strftime('%d.%m.%Y %H:%M') }}
+          {% else %}—{% endif %}
+        </p>
+      </div>
+    </div>
+
+    <!-- Przyciski akcji -->
+    <div class="card-actions justify-between items-center">
+      <!-- Powrót do listy -->
+      <button
+        class="btn btn-ghost btn-sm"
+        hx-get="/modules/issues/list"
+        hx-target="#main-content"
+        hx-swap="innerHTML"
+      >
+        ← Wróć do listy
+      </button>
+
+      <div class="flex gap-2">
+        <!-- Przycisk edycji -->
+        <button
+          class="btn btn-outline btn-sm"
+          hx-get="/modules/issues/{{ issue.id }}/edit"
+          hx-target="#main-content"
+          hx-swap="innerHTML"
+        >
+          Edytuj
+        </button>
+        <!-- Przycisk usunięcia — potwierdza akcję przed usunięciem -->
+        <button
+          class="btn btn-error btn-sm"
+          hx-delete="/modules/issues/{{ issue.id }}"
+          hx-target="#main-content"
+          hx-swap="innerHTML"
+          hx-confirm="Czy na pewno chcesz usunąć zgłoszenie #{{ issue.id }}?"
+          hx-on::after-request="htmx.ajax('GET', '/modules/issues/list', {target: '#main-content'})"
+        >
+          Usuń
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -17,7 +17,8 @@ Architektura **micro-frontends + microservices** pozwala na niezależne wdrażan
 | Nginx jako brama | Jeden punkt wejścia, routing `/modules/*` do mikroserwisów |
 | Moduły zwracają HTML partiale | Izolacja — moduł nie musi znać layoutu Shell |
 | OIDC + BFF Pattern | Tokeny nigdy nie trafiają do JS — ochrona przed XSS |
-| Osobne tabele migracji Alembic per moduł | Niezależne cykle życia schematów bazy danych |
+| Osobne schematy PostgreSQL per moduł | Pełna izolacja DDL — `shell.sessions`, `issues.issues` itd. Alembic nigdy nie widzi tabel innych modułów |
+| Niezależne migracje Alembic per moduł | Każdy schemat wersjonowany oddzielnie (`alembic_version_*` przechowywana w swoim schemacie) |
 
 ## 3. Widok architektury
 
@@ -136,13 +137,13 @@ sequenceDiagram
 ├── /shell                      # Aplikacja główna (layout, nawigacja, auth)
 │   ├── main.py
 │   ├── models.py / db.py
-│   ├── alembic/                # Migracje (tabela: alembic_version_shell)
+│   ├── alembic/                # Migracje (schemat PG: shell, wersja: shell.alembic_version_shell)
 │   └── templates/
 │
 ├── /module-issues              # Moduł zgłoszeń
 │   ├── main.py
 │   ├── models.py / db.py
-│   ├── alembic/                # Migracje (tabela: alembic_version_issues)
+│   ├── alembic/                # Migracje (schemat PG: issues, wersja: issues.alembic_version_issues)
 │   └── templates/
 │
 └── /tools                      # Konfiguracja narzędzi DB (pgAdmin, CloudBeaver)
@@ -161,12 +162,83 @@ sequenceDiagram
 ```mermaid
 timeline
     title Roadmap IT Project OS
-    MVP : Shell + Issues + Nginx + PostgreSQL
+    MVP : Shell + Issues + Nginx + PostgreSQL : Schematy PG per moduł
     v1.0 : OIDC (Keycloak) : Kanban : Powiadomienia
     v2.0 : Dokumentacja : Raporty : CI/CD pipeline
     v3.0 : Monitoring (logi, metryki) : Migracja do Azure AD : K8s-ready
 ```
 
-- Wydzielenie osobnych schematów PostgreSQL per moduł.
 - Distributed tracing i centralne logowanie.
 - Automatyczne budowanie obrazów Docker w CI/CD (GitHub Actions).
+
+---
+
+## 🚀 Development Setup
+
+### Wymagania
+
+- Docker + Docker Compose
+- Python 3.11+ (opcjonalnie, do lokalnego uruchamiania testów)
+- Node.js 18+ (opcjonalnie, do testów E2E Playwright)
+
+### Szybki start
+
+1. Sklonuj repozytorium i wejdź do katalogu projektu
+2. Skopiuj plik z przykładowymi zmiennymi:
+   ```bash
+   cp .env.example .env
+   # Uzupełnij wartości OIDC_CLIENT_SECRET, SECRET_KEY itp.
+   ```
+3. Uruchom środowisko:
+   ```bash
+   docker compose up --build
+   ```
+4. Zainicjalizuj schematy bazy danych:
+   ```bash
+   bash init_db.sh
+   ```
+5. Otwórz przeglądarkę: http://localhost:5050
+
+### Porty serwisów
+
+| Serwis | URL |
+|--------|-----|
+| Aplikacja (Nginx gateway) | http://localhost:5050 |
+| Shell (bezpośrednio) | http://localhost:8001 |
+| Module Issues (bezpośrednio) | http://localhost:8002 |
+| Shell — Swagger UI | http://localhost:8001/docs |
+| Module Issues — Swagger UI | http://localhost:8002/docs |
+| Keycloak | http://localhost:8080 |
+| pgAdmin | http://localhost:5080 |
+| Adminer | http://localhost:5081 |
+| CloudBeaver | http://localhost:5082 |
+
+### Uruchamianie testów
+
+```bash
+# Shell — testy jednostkowe i integracyjne
+docker compose run --rm shell pytest -v
+
+# Module Issues — testy jednostkowe i integracyjne
+docker compose run --rm module-issues pytest -v
+
+# Shell — testy z pokryciem kodu
+docker compose run --rm shell pytest --cov=. --cov-report=term-missing -v
+
+# E2E Playwright (wymaga uruchomionego: docker compose up)
+cd shell/tests/e2e
+npx playwright install   # jednorazowo — instalacja przeglądarek
+npx playwright test      # wszystkie testy E2E
+npx playwright test navigation.spec.ts   # tylko nawigacja
+npx playwright test issues-crud.spec.ts  # tylko CRUD Issues
+```
+
+### Struktura testów
+
+| Katalog | Typ testów | Opis |
+|---------|-----------|------|
+| `shell/tests/test_*_unit.py` | Jednostkowe | Czysta logika, bez I/O |
+| `shell/tests/test_*_integration.py` | Integracyjne | Endpointy HTTP (httpx.AsyncClient) |
+| `shell/tests/e2e/*.spec.ts` | E2E (Playwright) | Scenariusze użytkownika w przeglądarce |
+| `module-issues/tests/test_*_unit.py` | Jednostkowe | Modele, schematy, CRUD |
+| `module-issues/tests/test_endpoints_integration.py` | Integracyjne | Endpointy HTTP modułu |

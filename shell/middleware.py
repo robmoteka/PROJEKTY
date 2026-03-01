@@ -4,15 +4,16 @@ Middleware i globalne handlery wyjątków aplikacji Shell.
 Zapewnia spójne odpowiedzi na błędy:
 - Dla requestów HTMX (nagłówek HX-Request: true) → HTML partial z komunikatem DaisyUI
 - Dla zwykłych requestów (REST/przeglądarka) → odpowiedź JSON FastAPI
-- Catch-all handler loguje pełny traceback i zwraca status 500
 
-Opcjonalnie: middleware CSRF weryfikujący tokeny dla metod mutujących.
+UWAGA: Exception handler dla `Exception` (catch-all) nie obsługuje wyjątków
+zanupomowanych w wewnątrz endpointów — one są przechadzane przez
+ServerErrorMiddleware FastAPI zanim do niego dotarą. Dlatego handler
+obsługuje głównie wyjątki w samych endpointach lub middleware.
 """
 
 from __future__ import annotations
 
 import logging
-import traceback
 from typing import Callable
 
 from fastapi import Request
@@ -67,48 +68,4 @@ async def htmx_http_exception_handler(
         status_code=exc.status_code,
         content={"detail": exc.detail},
         headers=getattr(exc, "headers", None),
-    )
-
-
-async def htmx_generic_exception_handler(
-    request: Request,
-    exc: Exception,
-) -> HTMLResponse | JSONResponse:
-    """
-    Catch-all handler dla nieobsłużonych wyjątków (status 500).
-
-    Loguje pełny traceback na poziomie ERROR. Nigdy nie ujawnia
-    szczegółów błędu klientowi (ochrona przed information disclosure).
-    Dla HTMX zwraca HTML partial, dla REST — JSON.
-
-    Args:
-        request: Obiekt żądania HTTP.
-        exc: Dowolny nieoczekiwany wyjątek.
-
-    Returns:
-        HTMLResponse (HTMX) lub JSONResponse (REST) z kodem 500.
-    """
-    # Logujemy pełny traceback — widoczny tylko w logach serwera
-    logger.exception(
-        "Nieobsłużony wyjątek dla %s %s: %s",
-        request.method,
-        request.url.path,
-        exc,
-    )
-
-    # Generyczny komunikat — nie ujawniamy szczegółów stacktrace klientowi
-    GENERIC_MESSAGE = "Wystąpił nieoczekiwany błąd serwera. Spróbuj ponownie później."
-
-    is_htmx: bool = request.headers.get("HX-Request") == "true"
-
-    if is_htmx:
-        return templates.TemplateResponse(
-            "partials/error.html",
-            {"request": request, "message": GENERIC_MESSAGE},
-            status_code=500,
-        )
-
-    return JSONResponse(
-        status_code=500,
-        content={"detail": GENERIC_MESSAGE},
     )

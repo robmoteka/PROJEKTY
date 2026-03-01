@@ -1,0 +1,146 @@
+{
+  "realm": "it-os",
+  "displayName": "IT Project OS",
+  "displayNameHtml": "<b>IT Project OS</b>",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionMaxLifespanEnabled": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Pełny dostęp do systemu",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "it-os"
+      },
+      {
+        "name": "developer",
+        "description": "Dostęp do modułów roboczych (Issues, Kanban)",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "it-os"
+      },
+      {
+        "name": "viewer",
+        "description": "Tylko odczyt — przeglądanie danych bez edycji",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "it-os"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "it-project-os",
+      "name": "IT Project OS — Shell",
+      "description": "Klient OIDC dla aplikacji Shell (mikrofrontend hub)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "change-me-in-production",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [
+        "http://localhost:5050/auth/callback",
+        "http://localhost:5050/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:5050"
+      ],
+      "postLogoutRedirectUris": [
+        "http://localhost:5050/"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:5050/"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm-roles-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "email-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "email",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "email",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "full-name-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-full-name-mapper",
+          "consentRequired": false,
+          "config": {
+            "id.token.claim": "true",
+            "access.token.claim": "false",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "testuser",
+      "email": "test@example.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["developer"]
+    },
+    {
+      "username": "admin",
+      "email": "admin@example.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin", "developer"]
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+<!-- Formularz tworzenia/edycji zgłoszenia — HTML partial -->
+<div class="card bg-base-100 shadow-xl max-w-2xl mx-auto">
+  <div class="card-body">
+    <h2 class="card-title">
+      {% if issue %}Edytuj zgłoszenie #{{ issue.id }}{% else %}Nowe zgłoszenie{% endif %}
+    </h2>
+
+    <!-- HTMX przechwytuje submit — hx-put dla edycji, hx-post dla tworzenia -->
+    <form
+      {% if issue %}
+        hx-put="/modules/issues/{{ issue.id }}"
+      {% else %}
+        hx-post="/modules/issues/create"
+      {% endif %}
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+    >
+      <!-- Pole: Tytuł — wymagane, min 3 znaków -->
+      <div class="form-control w-full mb-4">
+        <label class="label">
+          <span class="label-text">Tytuł <span class="text-error">*</span></span>
+        </label>
+        <input
+          type="text"
+          name="title"
+          required
+          minlength="3"
+          maxlength="255"
+          class="input input-bordered w-full"
+          value="{{ issue.title if issue else '' }}"
+          placeholder="Krótki opis zgłoszenia…"
+        />
+      </div>
+
+      <!-- Pole: Opis — opcjonalne, wieloliniowe -->
+      <div class="form-control w-full mb-4">
+        <label class="label">
+          <span class="label-text">Opis</span>
+        </label>
+        <textarea
+          name="description"
+          class="textarea textarea-bordered w-full"
+          rows="4"
+          placeholder="Szczegółowy opis problemu lub zadania…"
+        >{{ issue.description if issue else '' }}</textarea>
+      </div>
+
+      <!-- Sekcja: Priorytet i Status (status tylko przy edycji) -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Priorytet</span>
+          </label>
+          <select name="priority" class="select select-bordered w-full">
+            {% for p in priorities %}
+              <option
+                value="{{ p.value }}"
+                {% if issue and issue.priority == p.value %}selected{% endif %}
+                {% if not issue and p.value == 'Średni' %}selected{% endif %}
+              >
+                {{ p.value }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Select statusu — tylko dla formularza edycji -->
+        {% if issue %}
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Status</span>
+          </label>
+          <select name="status" class="select select-bordered w-full">
+            {% for s in statuses %}
+              <option
+                value="{{ s.value }}"
+                {% if issue.status == s.value %}selected{% endif %}
+              >
+                {{ s.value }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Przyciski akcji -->
+      <div class="card-actions justify-end mt-4">
+        <!-- Anuluj — wróć do listy bez zapisu -->
+        <button
+          type="button"
+          class="btn btn-ghost"
+          hx-get="/modules/issues/list"
+          hx-target="#main-content"
+          hx-swap="innerHTML"
+        >
+          Anuluj
+        </button>
+        <button type="submit" class="btn btn-primary">
+          {% if issue %}Zapisz zmiany{% else %}Utwórz{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

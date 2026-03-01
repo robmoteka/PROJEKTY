@@ -1,6 +1,27 @@
 <!-- Pasek nawigacyjny Shell — partial wielokrotnego użytku -->
 <div class="navbar bg-base-100 shadow-lg px-4">
   <div class="navbar-start">
+    <!-- Hamburger menu — widoczne tylko na urządzeniach mobilnych -->
+    <div class="dropdown lg:hidden">
+      <label tabindex="0" class="btn btn-ghost">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+        </svg>
+      </label>
+      <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-10 p-2 shadow bg-base-100 rounded-box w-52">
+        <!-- Moduł Issues ładowany przez HTMX na mobile -->
+        <li>
+          <button
+            hx-get="/modules/issues/"
+            hx-target="#main-content"
+            hx-push-url="true"
+          >
+            Issues
+          </button>
+        </li>
+      </ul>
+    </div>
+
     <!-- Logo / nazwa systemu -->
     <a
       href="/"

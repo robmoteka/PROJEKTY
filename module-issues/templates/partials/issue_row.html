@@ -1,0 +1,41 @@
+<!-- Wiersz tabeli zgłoszeń — partial reużywany w list.html i przy aktualizacji HTMX -->
+<tr id="issue-{{ issue.id }}">
+  <td>{{ issue.id }}</td>
+  <td>
+    <!-- Link do szczegółów zgłoszenia — HTMX podmienia #main-content -->
+    <a
+      class="link link-hover link-primary cursor-pointer"
+      hx-get="/modules/issues/{{ issue.id }}"
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+    >
+      {{ issue.title }}
+    </a>
+  </td>
+  <td>
+    <span class="badge badge-outline">{{ issue.status }}</span>
+  </td>
+  <td>{{ issue.priority }}</td>
+  <td>{{ issue.author_name or '—' }}</td>
+  <td class="flex gap-1">
+    <!-- Przycisk edycji — otwiera formularz w #main-content -->
+    <button
+      class="btn btn-ghost btn-xs"
+      hx-get="/modules/issues/{{ issue.id }}/edit"
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+    >
+      Edytuj
+    </button>
+    <!-- Przycisk usunięcia — podmienia wiersz na pusty (outerHTML) -->
+    <button
+      class="btn btn-ghost btn-xs text-error"
+      hx-delete="/modules/issues/{{ issue.id }}"
+      hx-target="#issue-{{ issue.id }}"
+      hx-swap="outerHTML"
+      hx-confirm="Czy na pewno chcesz usunąć zgłoszenie #{{ issue.id }}?"
+    >
+      Usuń
+    </button>
+  </td>
+</tr>

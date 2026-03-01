@@ -5,6 +5,7 @@ Zawiera zależności do wstrzykiwania:
 - get_current_user: wyszukuje sesję użytkownika w bazie PostgreSQL na podstawie
   session_id z HttpOnly cookie — zwraca dane tożsamości lub None
 - require_authenticated_user: guard wymagający zalogowania (HTTP 401 jeśli brak sesji)
+- require_role: fabryka dependency — wymaga określonej roli (HTTP 403 jeśli brak roli)
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ async def get_current_user(
     settings: Annotated[Settings, Depends(get_settings)],
     db: Annotated[Session, Depends(get_db)],
     session: Annotated[str | None, Cookie()] = None,
-) -> dict[str, str] | None:
+) -> dict[str, Any] | None:
     """
     Wyszukuje dane aktualnie zalogowanego użytkownika na podstawie session_id.
 
@@ -74,18 +75,20 @@ async def get_current_user(
         db.commit()
         return None
 
-    # Sesja aktywna — zwracamy dane tożsamości użytkownika
+    # Sesja aktywna — zwracamy dane tożsamości użytkownika wraz z rolami
     return {
         "sub": db_session.user_id,
         "email": db_session.email or "",
         "name": db_session.name or "",
         "preferred_username": db_session.preferred_username or "",
+        # Role są przechowywane w sesji jako JSON string lub lista (zależy od implementacji zapisu)
+        "roles": getattr(db_session, "roles", []) or [],
     }
 
 
 async def require_authenticated_user(
-    user: Annotated[dict[str, str] | None, Depends(get_current_user)],
-) -> dict[str, str]:
+    user: Annotated[dict[str, Any] | None, Depends(get_current_user)],
+) -> dict[str, Any]:
     """
     Guard (zależność ochronna) — wymaga zalogowanego użytkownika.
 
@@ -107,4 +110,42 @@ async def require_authenticated_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
-    return user
+
+
+def require_role(role: str):
+    """
+    Fabryka dependency — chroni endpoint wymagając określonej roli.
+
+    Użycie:
+        @router.get("/admin")
+        async def admin(user: Annotated[dict, Depends(require_role("admin"))]):
+            ...
+
+    Args:
+        role: Nazwa wymaganej roli (np. "admin", "developer", "viewer").
+
+    Returns:
+        Zależność FastAPI sprawdzająca rolę i zwracająca dane użytkownika.
+
+    Raises:
+        HTTPException 403: Gdy użytkownik nie posiada wymaganej roli.
+    """
+    async def _check_role(
+        user: Annotated[dict[str, Any], Depends(require_authenticated_user)],
+    ) -> dict[str, Any]:
+        # Pobieramy listę ról użytkownika (pusta lista = brak ról)
+        user_roles: list[str] = user.get("roles", [])
+        if role not in user_roles:
+            logger.warning(
+                "Odmowa dostępu: user=%s nie posiada roli '%s' (ma: %s)",
+                user.get("sub"),
+                role,
+                user_roles,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Brak wymaganej roli: {role}",
+            )
+        return user
+
+    return _check_role

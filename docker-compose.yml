@@ -16,14 +16,44 @@ services:
     container_name: shell
     env_file:
       - .env
+    # Pozwala Shellowi na rozwiązywanie localhost:8080 → Keycloak przez host
+    # (potrzebne gdy OIDC_ISSUER używa http://localhost:8080/...)
+    extra_hosts:
+      - "localhost:host-gateway"
     depends_on:
       - postgres
+      - keycloak
 
   module-issues:
     build: ./module-issues
     container_name: module-issues
     env_file:
       - .env
+    depends_on:
+      - postgres
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: "${KEYCLOAK_ADMIN:-admin}"
+      KEYCLOAK_ADMIN_PASSWORD: "${KEYCLOAK_ADMIN_PASSWORD:-admin}"
+      KC_DB: postgres
+      KC_DB_URL: "jdbc:postgresql://postgres:5432/${POSTGRES_DB:-it_os_db}"
+      KC_DB_USERNAME: "${POSTGRES_USER:-postgres}"
+      KC_DB_PASSWORD: "${POSTGRES_PASSWORD:-secret}"
+      KC_DB_SCHEMA: keycloak
+      # Wymuszamy stały issuer URL (localhost) niezależnie od sposobu dostępu do Keycloak
+      KC_HOSTNAME_URL: "http://localhost:8080"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY: edge
+    # Automatyczny import realm przy pierwszym starcie
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./tools/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     depends_on:
       - postgres
 
@@ -36,6 +66,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Skrypty init uruchamiane TYLKO przy pierwszej inicjalizacji bazy (pusty volume)
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
 
   pgadmin:
     image: dpage/pgadmin4

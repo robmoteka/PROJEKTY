@@ -11,9 +11,17 @@ from __future__ import annotations
 from typing import Generator
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from config import get_settings
+
+
+# Klasa bazowa dla modeli SQLAlchemy — nowy styl SQLAlchemy 2.0
+class Base(DeclarativeBase):
+    """Klasa bazowa dla wszystkich modeli SQLAlchemy w module Shell."""
+
+    pass
+
 
 # Pobieramy ustawienia przez singleton — DATABASE_URL pochodzi z Settings
 _settings = get_settings()
@@ -26,9 +34,6 @@ engine = create_engine(DATABASE_URL)
 
 # Fabryka sesji — autocommit=False wymaga jawnego commit()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Klasa bazowa dla modeli ORM
-Base = declarative_base()
 
 
 def get_db() -> Generator[Session, None, None]:

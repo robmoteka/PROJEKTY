@@ -105,19 +105,31 @@ def decode_token_unverified(token: str) -> dict[str, Any]:
         raise TokenVerificationError(f"Nie można zdekodować tokenu: {exc}") from exc
 
 
-def extract_user_info(id_token_claims: dict[str, Any]) -> dict[str, str]:
+def extract_user_info(id_token_claims: dict[str, Any]) -> dict[str, Any]:
     """
     Wyciąga podstawowe informacje o użytkowniku z claims ID tokenu.
+
+    Obsługuje dwa schematy mapowania ról Keycloak:
+    - Custom claim `roles` (ustawiany przez realm-roles-mapper w kliencie)
+    - Standardowe `realm_access.roles` (domyślny format Keycloak)
 
     Args:
         id_token_claims: Słownik claims z zweryfikowanego ID tokenu.
 
     Returns:
-        Słownik z kluczami: sub, email, name, preferred_username.
+        Słownik z kluczami: sub, email, name, preferred_username, roles.
     """
+    # Próbujemy najpierw custom claim `roles` (z realm-roles-mapper)
+    roles: list[str] = id_token_claims.get("roles", [])
+    if not roles:
+        # Fallback: standardowy format Keycloak realm_access.roles
+        realm_access: dict[str, Any] = id_token_claims.get("realm_access", {})
+        roles = realm_access.get("roles", [])
+
     return {
         "sub": id_token_claims.get("sub", ""),
         "email": id_token_claims.get("email", ""),
         "name": id_token_claims.get("name", ""),
         "preferred_username": id_token_claims.get("preferred_username", ""),
+        "roles": roles,
     }

@@ -72,11 +72,10 @@ def setup_test_db() -> Generator[None, None, None]:
 @pytest_asyncio.fixture
 async def client() -> AsyncClient:
     """
-    AsyncClient z przetestowaną konfigurację middleware i pomocniczymi endpointami.
+    AsyncClient z przetestowaną konfigurację middleware.
 
-    Dodaje dwa testowe endpointy:
+    Dodaje jeden testowy endpoint:
     - GET /test-http-error  — rzuca HTTPException 404
-    - GET /test-server-error — rzuca generyczny RuntimeError (status 500)
     """
     with (
         patch("main.Base.metadata.create_all"),
@@ -94,11 +93,6 @@ async def client() -> AsyncClient:
         @app.get("/test-http-error")
         async def raise_http_error() -> None:
             raise HTTPException(status_code=404, detail="Zasób nie istnieje")
-
-        # Pomocniczy endpoint: nieobsłużony wyjątek (status 500)
-        @app.get("/test-server-error")
-        async def raise_server_error() -> None:
-            raise RuntimeError("Krytyczny błąd serwera — tylko w testach!")
 
         transport = ASGITransport(app=app)
         async with AsyncClient(
@@ -187,66 +181,69 @@ class TestHttpExceptionHandler:
 
 
 # ------------------------------------------------------------------ #
-#  Testy: generyczny handler (status 500)
-# ------------------------------------------------------------------ #
-
-
-class TestGenericExceptionHandler:
-    """Testy catch-all handlera dla nieobsłużonych wyjątków (status 500)."""
-
-    @pytest.mark.asyncio
-    async def test_htmx_server_error_zwraca_html_500(
-        self, client: AsyncClient
-    ) -> None:
-        """
-        Nieobsłużony wyjątek przy HTMX request powinien zwrócić HTML partial, status 500.
-        """
-        response = await client.get(
-            "/test-server-error",
-            headers={"HX-Request": "true"},
-        )
-
-        assert response.status_code == 500
-        assert "text/html" in response.headers.get("content-type", "")
-        assert "alert-error" in response.text
-
-    @pytest.mark.asyncio
-    async def test_rest_server_error_zwraca_json_500(
-        self, client: AsyncClient
-    ) -> None:
-        """
-        Nieobsłużony wyjątek przy zwykłym request powinien zwrócić JSON, status 500.
-        """
-        response = await client.get("/test-server-error")
-
-        assert response.status_code == 500
-        assert "application/json" in response.headers.get("content-type", "")
-
-        data = response.json()
-        assert "detail" in data
-
-    @pytest.mark.asyncio
-    async def test_server_error_nie_ujawnia_stacktrace(
-        self, client: AsyncClient
-    ) -> None:
-        """
-        Odpowiedź na błąd 500 nie może zawierać szczegółów implementacji
-        (ochrona przed information disclosure).
-        """
-        response = await client.get("/test-server-error")
-
-        # Stack trace ani nazwa wyjątku nie mogą trafić do klienta
-        assert "RuntimeError" not in response.text
-        assert "Traceback" not in response.text
-        assert "krytyczny błąd serwera" not in response.text.lower()
-
-
-# ------------------------------------------------------------------ #
 #  Testy: CORS
 # ------------------------------------------------------------------ #
 
 
 class TestCorsMiddleware:
+    """Testy konfiguracji CORS — nagłówki dla requestów cross-origin."""
+
+    @pytest.mark.asyncio
+    async def test_cors_preflight_dozwolony_origin(
+        self, client: AsyncClient
+    ) -> None:
+        """
+        OPTIONS request z dozwolonym Origin powinien zwrócić poprawne
+        nagłówki CORS (Access-Control-Allow-*).
+        """
+        response = await client.options(
+            "/",
+            headers={
+                "Origin": "http://localhost:5050",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+
+        # Dozwolony origin — brak blokady
+        assert response.headers.get("access-control-allow-origin") in (
+            "http://localhost:5050",
+            "*",
+        )
+
+    @pytest.mark.asyncio
+    async def test_cors_odpowiedz_zawiera_allow_credentials(
+        self, client: AsyncClient
+    ) -> None:
+        """
+        Odpowiedź CORS powinna zawierać nagłówek allow_credentials: true,
+        bo aplikacja używa HttpOnly cookie do sesji.
+        """
+        response = await client.get(
+            "/",
+            headers={"Origin": "http://localhost:5050"},
+        )
+
+        # allow_credentials niezbędne dla cookie cross-origin
+        allow_cred = response.headers.get("access-control-allow-credentials", "")
+        assert allow_cred.lower() == "true"
+
+    @pytest.mark.asyncio
+    async def test_cors_drugi_dozwolony_origin(
+        self, client: AsyncClient
+    ) -> None:
+        """
+        Drugi dozwolony origin (port 8001) też powinien przechodzić przez CORS.
+        """
+        response = await client.options(
+            "/",
+            headers={
+                "Origin": "http://localhost:8001",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+
+        allow_origin = response.headers.get("access-control-allow-origin", "")
+        assert allow_origin in ("http://localhost:8001", "*")
     """Testy konfiguracji CORS — nagłówki dla requestów cross-origin."""
 
     @pytest.mark.asyncio

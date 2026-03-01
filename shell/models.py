@@ -22,6 +22,8 @@ class UserSession(Base):
     """
 
     __tablename__ = "sessions"
+    # Dedykowany schemat PostgreSQL dla modułu Shell — tabele nigdy nie trafiają do public
+    __table_args__ = {"schema": "shell"}
 
     # Klucz główny tabeli
     id = Column(Integer, primary_key=True, index=True)
