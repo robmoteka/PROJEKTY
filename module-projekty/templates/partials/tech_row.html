@@ -1,0 +1,18 @@
+<!-- Wiersz technologii — partial dla pętli {% for tech in project.technologies %} -->
+<tr id="tech-{{ tech.id }}">
+  <td><span class="badge badge-sm">{{ tech.category }}</span></td>
+  <td>{{ tech.name }}</td>
+  <td>{{ tech.version or '—' }}</td>
+  <td class="max-w-xs truncate">{{ tech.description or '—' }}</td>
+  <td class="flex gap-1">
+    <button class="btn btn-ghost btn-xs"
+            hx-get="/modules/projekty/{{ tech.project_id }}/technologies/{{ tech.id }}/edit"
+            hx-target="#tech-{{ tech.id }}"
+            hx-swap="outerHTML">Edytuj</button>
+    <button class="btn btn-ghost btn-xs text-error"
+            hx-delete="/modules/projekty/{{ tech.project_id }}/technologies/{{ tech.id }}"
+            hx-target="#tech-{{ tech.id }}"
+            hx-swap="outerHTML"
+            hx-confirm="Usuń technologię?">Usuń</button>
+  </td>
+</tr>

@@ -1,0 +1,220 @@
+<!-- Formularz tworzenia/edycji projektu — HTML partial z sidebare'm -->
+{% extends "_layout.html" %}
+
+{% block content %}
+  <div class="card bg-base-100 shadow-md">
+    <div class="card-body">
+    <h2 class="card-title">
+      {% if project %}Edytuj projekt {{ project.code }}{% else %}Nowy projekt{% endif %}
+    </h2>
+
+    <!-- HTMX przechwytuje submit — hx-put dla edycji, hx-post dla tworzenia -->
+    <form
+      {% if project %}
+        hx-put="/modules/projekty/{{ project.id }}"
+      {% else %}
+        hx-post="/modules/projekty/create"
+      {% endif %}
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+    >
+
+      <div class="divider">Informacje podstawowe</div>
+
+      <!-- Wiersz 1: Nazwa i Kod -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Nazwa <span class="text-error">*</span></span>
+          </label>
+          <input
+            type="text"
+            name="name"
+            required
+            minlength="3"
+            class="input input-bordered w-full"
+            value="{{ project.name if project else '' }}"
+            placeholder="Nazwa projektu…"
+          />
+        </div>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Kod <span class="text-error">*</span></span>
+          </label>
+          <input
+            type="text"
+            name="code"
+            required
+            minlength="2"
+            maxlength="50"
+            class="input input-bordered w-full"
+            value="{{ project.code if project else '' }}"
+            placeholder="np. PROJ-01"
+          />
+        </div>
+      </div>
+
+      <!-- Właściciel + Status (status tylko przy edycji) -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Właściciel</span>
+          </label>
+          <input
+            type="text"
+            name="owner_name"
+            class="input input-bordered w-full"
+            value="{{ project.owner_name if project else '' }}"
+            placeholder="Imię i nazwisko…"
+          />
+        </div>
+
+        <!-- Select statusu — tylko dla formularza edycji -->
+        {% if project %}
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Status</span>
+          </label>
+          <select name="status" class="select select-bordered w-full">
+            {% for s in statuses %}
+              <option
+                value="{{ s.value }}"
+                {% if project.status == s.value %}selected{% endif %}
+              >
+                {{ s.value }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Opis / Problem -->
+      <div class="form-control w-full mb-4">
+        <label class="label">
+          <span class="label-text">Opis / Problem Statement</span>
+        </label>
+        <textarea
+          name="problem_statement"
+          class="textarea textarea-bordered w-full"
+          rows="3"
+          placeholder="Krótki opis celu projektu lub problemu do rozwiązania…"
+        >{{ project.problem_statement if project else '' }}</textarea>
+      </div>
+
+      <!-- Daty: start / koniec -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Data rozpoczęcia</span>
+          </label>
+          <input
+            type="date"
+            name="start_date"
+            class="input input-bordered w-full"
+            value="{{ project.start_date.strftime('%Y-%m-%d') if project and project.start_date else '' }}"
+          />
+        </div>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Data zakończenia</span>
+          </label>
+          <input
+            type="date"
+            name="end_date"
+            class="input input-bordered w-full"
+            value="{{ project.end_date.strftime('%Y-%m-%d') if project and project.end_date else '' }}"
+          />
+        </div>
+      </div>
+
+      <div class="divider">Infrastruktura</div>
+
+      <!-- Serwery dev / prod -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Serwer Dev</span>
+          </label>
+          <select name="dev_server_id" class="select select-bordered w-full">
+            <option value="">— Brak —</option>
+            {% for server in servers %}
+              <option
+                value="{{ server.id }}"
+                {% if project and project.dev_server_id == server.id %}selected{% endif %}
+              >
+                {{ server.name }} ({{ server.hostname }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Serwer Prod</span>
+          </label>
+          <select name="prod_server_id" class="select select-bordered w-full">
+            <option value="">— Brak —</option>
+            {% for server in servers %}
+              <option
+                value="{{ server.id }}"
+                {% if project and project.prod_server_id == server.id %}selected{% endif %}
+              >
+                {{ server.name }} ({{ server.hostname }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Zakres portów -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Port od</span>
+          </label>
+          <input
+            type="number"
+            name="port_range_start"
+            min="1"
+            max="65535"
+            class="input input-bordered w-full"
+            value="{{ project.port_range_start if project and project.port_range_start else '' }}"
+            placeholder="np. 8000"
+          />
+        </div>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Port do</span>
+          </label>
+          <input
+            type="number"
+            name="port_range_end"
+            min="1"
+            max="65535"
+            class="input input-bordered w-full"
+            value="{{ project.port_range_end if project and project.port_range_end else '' }}"
+            placeholder="np. 8099"
+          />
+        </div>
+      </div>
+
+      <!-- Przyciski formularza -->
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          class="btn btn-ghost"
+          hx-get="/modules/projekty/list"
+          hx-target="#main-content"
+          hx-swap="innerHTML"
+        >
+          Anuluj
+        </button>
+        <button type="submit" class="btn btn-primary">
+          {% if project %}Zapisz zmiany{% else %}Utwórz{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+  </div>
+{% endblock %}

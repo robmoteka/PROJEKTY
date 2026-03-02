@@ -1,0 +1,18 @@
+<!-- Wiersz KPI — partial dla pętli {% for kpi in project.kpis %} -->
+<tr id="kpi-{{ kpi.id }}">
+  <td>{{ kpi.name }}</td>
+  <td>{{ kpi.target_value }}</td>
+  <td>{{ kpi.current_value or '—' }}</td>
+  <td>{{ kpi.unit or '—' }}</td>
+  <td class="flex gap-1">
+    <button class="btn btn-ghost btn-xs"
+            hx-get="/modules/projekty/{{ kpi.project_id }}/kpis/{{ kpi.id }}/edit"
+            hx-target="#kpi-{{ kpi.id }}"
+            hx-swap="outerHTML">Edytuj</button>
+    <button class="btn btn-ghost btn-xs text-error"
+            hx-delete="/modules/projekty/{{ kpi.project_id }}/kpis/{{ kpi.id }}"
+            hx-target="#kpi-{{ kpi.id }}"
+            hx-swap="outerHTML"
+            hx-confirm="Usuń KPI?">Usuń</button>
+  </td>
+</tr>

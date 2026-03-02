@@ -1,0 +1,38 @@
+<!-- Lista serwerów — HTML partial z sidebare'm -->
+{% extends "../_layout.html" %}
+
+{% block content %}
+
+  <!-- Nagłówek -->
+  <div class="flex justify-between items-center border-b border-base-300 pb-4 mb-6">
+    <h2 class="text-3xl font-bold">Serwery</h2>
+  </div>
+
+  <!-- Tabela serwerów -->
+  <div class="overflow-x-auto bg-base-100 rounded-lg shadow-sm">
+    <table class="table table-zebra w-full">
+      <thead>
+        <tr>
+          <th>Nazwa</th>
+          <th>Hostname</th>
+          <th>Typ</th>
+          <th>System</th>
+          <th>Status</th>
+          <th>Akcje</th>
+        </tr>
+      </thead>
+      <tbody id="servers-tbody">
+        {% for server in servers %}
+          {% include "servers/partials/server_row.html" %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-base-content/50 py-8">
+              Brak serwerów. Kliknij "+ Nowy serwer", aby dodać pierwszy.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}

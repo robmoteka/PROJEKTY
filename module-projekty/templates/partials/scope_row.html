@@ -1,0 +1,17 @@
+<!-- Wiersz zakresu projektu — partial dla pętli {% for item in project.scope_items %} -->
+<tr id="scope-{{ item.id }}">
+  <td><span class="badge badge-sm">{{ item.category }}</span></td>
+  <td>{{ item.description }}</td>
+  <td>{{ item.priority or '—' }}</td>
+  <td class="flex gap-1">
+    <button class="btn btn-ghost btn-xs"
+            hx-get="/modules/projekty/{{ item.project_id }}/scope/{{ item.id }}/edit"
+            hx-target="#scope-{{ item.id }}"
+            hx-swap="outerHTML">Edytuj</button>
+    <button class="btn btn-ghost btn-xs text-error"
+            hx-delete="/modules/projekty/{{ item.project_id }}/scope/{{ item.id }}"
+            hx-target="#scope-{{ item.id }}"
+            hx-swap="outerHTML"
+            hx-confirm="Usuń element zakresu?">Usuń</button>
+  </td>
+</tr>

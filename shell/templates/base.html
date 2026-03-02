@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="pl" data-theme="dark">
+<html lang="pl" data-theme="business">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}IT Project OS{% endblock %}</title>
+
+  <!-- Inicjalizacja motywu przed renderem — zapobiega migotaniu (FOUC) -->
+  <script>
+    (function () {
+      var saved = localStorage.getItem('it-theme') || 'business';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
 
   <!-- Tailwind CSS + DaisyUI -->
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet" />
@@ -12,11 +20,37 @@
   <!-- HTMX 2.0 — serwowany lokalnie przez Nginx (/static/js/) -->
   <script src="/static/js/htmx.min.js" defer></script>
 
-  <!-- Własne style — uzupełnienie Tailwind + DaisyUI -->
+  <!-- Własne style — dodatki do DaisyUI business/light, animacje HTMX -->
   <link href="/static/css/custom.css" rel="stylesheet" />
+
+  <!-- Przełącznik motywu — globalny, wywoływany z navbar -->
+  <script>
+    function toggleTheme() {
+      var current = document.documentElement.getAttribute('data-theme');
+      var next = (current === 'business') ? 'light' : 'business';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('it-theme', next);
+      // Aktualizuj ikonę przycisku toggle
+      var iconSun  = document.getElementById('icon-sun');
+      var iconMoon = document.getElementById('icon-moon');
+      if (iconSun && iconMoon) {
+        iconSun.classList.toggle('hidden',  next === 'light');
+        iconMoon.classList.toggle('hidden', next === 'business');
+      }
+    }
+    // Inicjalizacja ikonki po załadowaniu DOM
+    document.addEventListener('DOMContentLoaded', function () {
+      var theme = localStorage.getItem('it-theme') || 'business';
+      var iconSun  = document.getElementById('icon-sun');
+      var iconMoon = document.getElementById('icon-moon');
+      if (iconSun && iconMoon) {
+        iconSun.classList.toggle('hidden',  theme === 'light');
+        iconMoon.classList.toggle('hidden', theme === 'business');
+      }
+    });
+  </script>
 </head>
-<body class="min-h-screen bg-base-200"
-      hx-indicator="#htmx-loading">
+<body class="min-h-screen" hx-indicator="#htmx-loading">
 
   <!-- Nawigacja główna -->
   {% include "partials/navbar.html" %}
@@ -24,7 +58,7 @@
   <!-- Globalny wskaźnik ładowania HTMX — widoczny podczas requestów -->
   <div id="htmx-loading"
        class="htmx-indicator fixed top-0 left-0 w-full z-50">
-    <progress class="progress progress-primary w-full"></progress>
+    <progress class="progress progress-primary w-full h-0.5"></progress>
   </div>
 
   <!-- Kontener głównej treści — cel dla HTMX swap -->
@@ -34,3 +68,4 @@
 
 </body>
 </html>
+

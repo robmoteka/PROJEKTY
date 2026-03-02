@@ -1,0 +1,18 @@
+<!-- Wiersz portu sieciowego — partial dla pętli {% for port in project.ports %} -->
+<tr id="port-{{ port.id }}">
+  <td>{{ port.port_number }}</td>
+  <td>{{ port.protocol }}</td>
+  <td>{{ port.service_name or '—' }}</td>
+  <td>{{ port.description or '—' }}</td>
+  <td class="flex gap-1">
+    <button class="btn btn-ghost btn-xs"
+            hx-get="/modules/projekty/{{ port.project_id }}/ports/{{ port.id }}/edit"
+            hx-target="#port-{{ port.id }}"
+            hx-swap="outerHTML">Edytuj</button>
+    <button class="btn btn-ghost btn-xs text-error"
+            hx-delete="/modules/projekty/{{ port.project_id }}/ports/{{ port.id }}"
+            hx-target="#port-{{ port.id }}"
+            hx-swap="outerHTML"
+            hx-confirm="Usuń port?">Usuń</button>
+  </td>
+</tr>

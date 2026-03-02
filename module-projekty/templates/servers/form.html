@@ -1,0 +1,134 @@
+<!-- Formularz tworzenia/edycji serwera — HTML partial z sidebare'm -->
+{% extends "../_layout.html" %}
+
+{% block content %}
+  <div class="card bg-base-100 shadow-md">
+    <div class="card-body">
+    <h2 class="card-title">
+      {% if server %}Edytuj serwer {{ server.name }}{% else %}Nowy serwer{% endif %}
+    </h2>
+
+    <!-- HTMX przechwytuje submit — hx-put dla edycji, hx-post dla tworzenia -->
+    <form
+      {% if server %}
+        hx-put="/modules/projekty/servers/{{ server.id }}"
+      {% else %}
+        hx-post="/modules/projekty/servers/create"
+      {% endif %}
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+    >
+
+      <!-- Wiersz 1: Nazwa i Hostname -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Nazwa <span class="text-error">*</span></span>
+          </label>
+          <input
+            type="text"
+            name="name"
+            required
+            class="input input-bordered w-full"
+            value="{{ server.name if server else '' }}"
+            placeholder="np. DEV-01"
+          />
+        </div>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Hostname / IP <span class="text-error">*</span></span>
+          </label>
+          <input
+            type="text"
+            name="hostname"
+            required
+            class="input input-bordered w-full"
+            value="{{ server.hostname if server else '' }}"
+            placeholder="np. 10.0.0.1 lub dev.example.com"
+          />
+        </div>
+      </div>
+
+      <!-- Wiersz 2: Typ i System operacyjny -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Typ serwera</span>
+          </label>
+          <select name="server_type" class="select select-bordered w-full">
+            {% for t in server_types %}
+              <option
+                value="{{ t.value }}"
+                {% if server and server.server_type == t.value %}selected{% endif %}
+              >
+                {{ t.value }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">System operacyjny</span>
+          </label>
+          <input
+            type="text"
+            name="operating_system"
+            class="input input-bordered w-full"
+            value="{{ server.operating_system if server else '' }}"
+            placeholder="np. Ubuntu 22.04"
+          />
+        </div>
+      </div>
+
+      <!-- Status — tylko przy edycji -->
+      {% if server %}
+      <div class="form-control w-full mb-4">
+        <label class="label">
+          <span class="label-text">Status</span>
+        </label>
+        <select name="status" class="select select-bordered w-full">
+          {% for s in server_statuses %}
+            <option
+              value="{{ s.value }}"
+              {% if server.status == s.value %}selected{% endif %}
+            >
+              {{ s.value }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <!-- Opis serwera -->
+      <div class="form-control w-full mb-6">
+        <label class="label">
+          <span class="label-text">Opis</span>
+        </label>
+        <textarea
+          name="description"
+          class="textarea textarea-bordered w-full"
+          rows="3"
+          placeholder="Dodatkowe informacje o serwerze…"
+        >{{ server.description if server else '' }}</textarea>
+      </div>
+
+      <!-- Przyciski formularza -->
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          class="btn btn-ghost"
+          hx-get="/modules/projekty/servers"
+          hx-target="#main-content"
+          hx-swap="innerHTML"
+        >
+          Anuluj
+        </button>
+        <button type="submit" class="btn btn-primary">
+          {% if server %}Zapisz zmiany{% else %}Utwórz{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+  </div>
+{% endblock %}

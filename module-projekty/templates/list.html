@@ -1,0 +1,38 @@
+<!-- Lista projektów — HTML partial z sidebare'm -->
+{% extends "_layout.html" %}
+
+{% block content %}
+
+  <!-- Nagłówek -->
+  <div class="flex justify-between items-center border-b border-base-300 pb-4 mb-6">
+    <h2 class="text-3xl font-bold">Projekty</h2>
+  </div>
+
+  <!-- Tabela projektów -->
+  <div class="overflow-x-auto bg-base-100 rounded-lg shadow-sm">
+    <table class="table table-zebra w-full">
+      <thead>
+        <tr>
+          <th>Kod</th>
+          <th>Nazwa</th>
+          <th>Status</th>
+          <th>Właściciel</th>
+          <th>Termin</th>
+          <th>Akcje</th>
+        </tr>
+      </thead>
+      <tbody id="projects-tbody">
+        {% for project in projects %}
+          {% include "partials/project_row.html" %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-base-content/50 py-8">
+              Brak projektów. Kliknij "+ Nowy projekt", aby dodać pierwszy.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}

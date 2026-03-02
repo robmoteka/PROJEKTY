@@ -31,6 +31,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+SUPPORTED_MODULES: set[str] = {"issues", "projekty"}
+
 # --------------------------------------------------------------------------- #
 #  Inicjalizacja aplikacji
 # --------------------------------------------------------------------------- #
@@ -105,6 +107,91 @@ async def index(
             "request": request,
             "user": current_user,
             "app_title": "IT Project OS",
+            "initial_module_url": None,
+        },
+    )
+
+
+@app.get(
+    "/modules/{module_name}/",
+    response_class=HTMLResponse,
+    summary="Fallback pełnego layoutu dla URL modułu",
+)
+@app.get(
+    "/modules/{module_name}/{module_path:path}",
+    response_class=HTMLResponse,
+    summary="Fallback pełnego layoutu dla zagnieżdżonych URL modułu",
+)
+async def module_entrypoint(
+    request: Request,
+    module_name: str,
+    settings: Annotated[Settings, Depends(get_settings)],
+    current_user: Annotated[dict | None, Depends(get_current_user)],
+    module_path: str = "",
+) -> HTMLResponse:
+    """
+    Renderuje pełny layout Shell dla bezpośredniego wejścia na adres modułu.
+
+    Ten endpoint jest używany przy pełnym przeładowaniu strony pod adresem
+    `/modules/<name>/...` (bez nagłówka `HX-Request`). Shell renderuje wtedy
+    pełny layout i automatycznie dociąga właściwy partial modułu przez HTMX
+    do `#main-content`.
+
+    Args:
+        request: Obiekt żądania FastAPI (wymagany przez Jinja2).
+        module_name: Nazwa modułu z URL (np. issues, projekty).
+        current_user: Dane zalogowanego użytkownika lub None.
+        module_path: Opcjonalna zagnieżdżona ścieżka modułu.
+
+    Returns:
+        Pełna strona HTML Shell z automatycznym bootstrapem HTMX.
+
+    Raises:
+        HTTPException: Gdy moduł nie znajduje się na liście obsługiwanych.
+    """
+    if module_name not in SUPPORTED_MODULES:
+        raise HTTPException(status_code=404, detail="Nieznany moduł.")
+
+    initial_module_url = request.url.path
+    if request.url.query:
+        initial_module_url = f"{initial_module_url}?{request.url.query}"
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "user": current_user,
+            "app_title": "IT Project OS",
+            "initial_module_url": initial_module_url,
+        },
+    )
+
+
+@app.get("/profile", response_class=HTMLResponse, summary="Strona profilu użytkownika")
+async def profile(
+    request: Request,
+    settings: Annotated[Settings, Depends(get_settings)],
+    current_user: Annotated[dict, Depends(require_authenticated_user)],
+) -> HTMLResponse:
+    """
+    Renderuje stronę profilu zalogowanego użytkownika.
+
+    Wyświetla dane z sesji OIDC (read-only) oraz link do panelu konta
+    Keycloak umożliwiającego zmianę hasła.
+
+    Args:
+        request: Obiekt żądania FastAPI (wymagany przez Jinja2).
+        current_user: Dane zalogowanego użytkownika (wymaga sesji — 401 jeśli brak).
+
+    Returns:
+        Pełna strona HTML z profilem użytkownika.
+    """
+    return templates.TemplateResponse(
+        "profile.html",
+        {
+            "request": request,
+            "user": current_user,
+            "keycloak_account_url": settings.KEYCLOAK_ACCOUNT_URL,
         },
     )
 

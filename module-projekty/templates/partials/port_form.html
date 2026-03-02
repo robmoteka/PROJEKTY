@@ -1,0 +1,35 @@
+<!-- Formularz portu sieciowego — inline partial wstawiany do #port-form-slot lub zamieniający wiersz -->
+<tr id="port-form">
+  <td colspan="5">
+    <form {% if port %}
+            hx-put="/modules/projekty/{{ project_id }}/ports/{{ port.id }}"
+            hx-target="#port-{{ port.id }}" hx-swap="outerHTML"
+          {% else %}
+            hx-post="/modules/projekty/{{ project_id }}/ports"
+            hx-target="#port-list" hx-swap="beforeend"
+          {% endif %}>
+      <div class="flex gap-2 items-end flex-wrap">
+        <input name="port_number" type="number" required min="1" max="65535"
+               class="input input-sm input-bordered w-24"
+               placeholder="Port" value="{{ port.port_number if port else '' }}" />
+        <select name="protocol" required class="select select-sm select-bordered">
+          {% for proto in protocols %}
+            <option value="{{ proto.value }}"
+              {% if port and port.protocol == proto.value %}selected{% endif %}>
+              {{ proto.value }}
+            </option>
+          {% endfor %}
+        </select>
+        <input name="service_name" class="input input-sm input-bordered"
+               placeholder="Nazwa usługi" value="{{ port.service_name if port else '' }}" />
+        <input name="description" class="input input-sm input-bordered"
+               placeholder="Opis (opcjonalny)" value="{{ port.description if port else '' }}" />
+        <button type="submit" class="btn btn-primary btn-sm">
+          {% if port %}Zapisz{% else %}Dodaj{% endif %}
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm"
+                onclick="this.closest('tr').remove()">Anuluj</button>
+      </div>
+    </form>
+  </td>
+</tr>

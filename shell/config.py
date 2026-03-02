@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     # Klucz do podpisywania własnych tokenów sesji (jeśli używamy HS256)
     SECRET_KEY: str = "super-secret-change-in-production"
 
+    # --- Keycloak Account Console ---
+    # URL do panelu konta Keycloak — używany na stronie profilu (link do zmiany hasła)
+    KEYCLOAK_ACCOUNT_URL: str = "http://localhost:8080/realms/it-os/account"
+
     # --- CORS ---
     # Lista dozwolonych origins oddzielonych przecinkami (dev: localhost z różnymi portami)
     CORS_ORIGINS: str = "http://localhost:5050,http://localhost:8001,http://localhost:8002"

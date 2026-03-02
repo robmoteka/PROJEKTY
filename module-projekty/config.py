@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # --- CORS ---
     # Lista dozwolonych origins oddzielonych przecinkami
-    CORS_ORIGINS: str = "http://localhost:5050,http://localhost:8001,http://localhost:8002"
+    CORS_ORIGINS: str = "http://localhost:5050,http://localhost:8001,http://localhost:8002,http://localhost:8003"
 
     model_config = SettingsConfigDict(
         # Plik .env względem katalogu głównego projektu

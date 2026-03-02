@@ -1,0 +1,28 @@
+<!-- Formularz KPI — inline partial wstawiany do #kpi-form-slot lub zamieniający wiersz przy edycji -->
+<tr id="kpi-form">
+  <td colspan="5">
+    <form {% if kpi %}
+            hx-put="/modules/projekty/{{ project_id }}/kpis/{{ kpi.id }}"
+            hx-target="#kpi-{{ kpi.id }}" hx-swap="outerHTML"
+          {% else %}
+            hx-post="/modules/projekty/{{ project_id }}/kpis"
+            hx-target="#kpi-list" hx-swap="beforeend"
+          {% endif %}>
+      <div class="flex gap-2 items-end flex-wrap">
+        <input name="name" required class="input input-sm input-bordered"
+               placeholder="Nazwa KPI" value="{{ kpi.name if kpi else '' }}" />
+        <input name="target_value" required class="input input-sm input-bordered"
+               placeholder="Wartość docelowa" value="{{ kpi.target_value if kpi else '' }}" />
+        <input name="current_value" class="input input-sm input-bordered"
+               placeholder="Wartość aktualna" value="{{ kpi.current_value if kpi else '' }}" />
+        <input name="unit" class="input input-sm input-bordered w-24"
+               placeholder="Jednostka" value="{{ kpi.unit if kpi else '' }}" />
+        <button type="submit" class="btn btn-primary btn-sm">
+          {% if kpi %}Zapisz{% else %}Dodaj{% endif %}
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm"
+                onclick="this.closest('tr').remove()">Anuluj</button>
+      </div>
+    </form>
+  </td>
+</tr>

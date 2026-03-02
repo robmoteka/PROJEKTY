@@ -1,0 +1,61 @@
+<!-- Layout z sidebare'm — wrapper dla wszystkich szablonów module-projekty -->
+<div class="flex gap-0 min-h-[calc(100vh-64px)]">
+  
+  <!-- Sidebar — przylepiony do lewej strony -->
+  <aside class="w-64 bg-base-100 border-r border-base-300 p-6 space-y-6 overflow-y-auto flex-shrink-0">
+    
+    <!-- Sekcja: Projekty -->
+    <div>
+      <h3 class="text-sm font-bold leading-6 text-base-content mb-2">Projekty</h3>
+      <nav class="space-y-1">
+        <a 
+          hx-get="/modules/projekty/"
+          hx-target="#main-content"
+          hx-push-url="true"
+          class="nav-link block px-3 py-2 text-sm rounded-md transition {{ 'bg-primary text-primary-content' if active_section == 'projects' else 'hover:bg-base-200' }}">
+          📋 Lista projektów
+        </a>
+        <a 
+          hx-get="/modules/projekty/create"
+          hx-target="#main-content"
+          hx-push-url="true"
+          class="nav-link block px-3 py-2 text-sm rounded-md transition hover:bg-base-200">
+          ➕ Nowy projekt
+        </a>
+      </nav>
+    </div>
+
+    <!-- Separator -->
+    <div class="divider my-2"></div>
+    
+    <!-- Sekcja: Serwery -->
+    <div>
+      <h3 class="text-sm font-bold leading-6 text-base-content mb-2">Serwery</h3>
+      <nav class="space-y-1">
+        <a 
+          hx-get="/modules/projekty/servers"
+          hx-target="#main-content"
+          hx-push-url="true"
+          class="nav-link block px-3 py-2 text-sm rounded-md transition {{ 'bg-primary text-primary-content' if active_section == 'servers' else 'hover:bg-base-200' }}">
+          🖥️ Lista serwerów
+        </a>
+        <a 
+          hx-get="/modules/projekty/servers/create"
+          hx-target="#main-content"
+          hx-push-url="true"
+          class="nav-link block px-3 py-2 text-sm rounded-md transition hover:bg-base-200">
+          ➕ Nowy serwer
+        </a>
+      </nav>
+    </div>
+
+  </aside>
+
+  <!-- Main content area — zawijane w max-width dla wycentrowania -->
+  <main class="flex-1 p-8 overflow-y-auto">
+    <div class="max-w-4xl mx-auto">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+</div>

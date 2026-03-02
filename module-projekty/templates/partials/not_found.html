@@ -1,0 +1,10 @@
+<!-- Komunikat o braku projektu — HTML partial -->
+<div class="alert alert-error max-w-lg mx-auto my-8">
+  <span>{{ message or 'Żądany zasób nie został znaleziony.' }}</span>
+  <button class="btn btn-sm btn-ghost"
+          hx-get="/modules/projekty/list"
+          hx-target="#main-content"
+          hx-swap="innerHTML">
+    Wróć do listy
+  </button>
+</div>

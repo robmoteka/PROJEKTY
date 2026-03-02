@@ -1,0 +1,33 @@
+<!-- Formularz zakresu projektu — inline partial wstawiany do #scope-form-slot lub zamieniający wiersz -->
+<tr id="scope-form">
+  <td colspan="4">
+    <form {% if item %}
+            hx-put="/modules/projekty/{{ project_id }}/scope/{{ item.id }}"
+            hx-target="#scope-{{ item.id }}" hx-swap="outerHTML"
+          {% else %}
+            hx-post="/modules/projekty/{{ project_id }}/scope"
+            hx-target="#scope-list" hx-swap="beforeend"
+          {% endif %}>
+      <div class="flex gap-2 items-end flex-wrap">
+        <select name="category" required class="select select-sm select-bordered">
+          {% for cat in scope_categories %}
+            <option value="{{ cat.value }}"
+              {% if item and item.category == cat.value %}selected{% endif %}>
+              {{ cat.value }}
+            </option>
+          {% endfor %}
+        </select>
+        <textarea name="description" required class="textarea textarea-sm textarea-bordered"
+                  placeholder="Opis elementu zakresu"
+                  rows="1">{{ item.description if item else '' }}</textarea>
+        <input name="priority" type="number" class="input input-sm input-bordered w-20"
+               placeholder="Prior." value="{{ item.priority if item else '' }}" />
+        <button type="submit" class="btn btn-primary btn-sm">
+          {% if item %}Zapisz{% else %}Dodaj{% endif %}
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm"
+                onclick="this.closest('tr').remove()">Anuluj</button>
+      </div>
+    </form>
+  </td>
+</tr>

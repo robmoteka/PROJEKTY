@@ -1,0 +1,34 @@
+<!-- Formularz technologii — inline partial wstawiany do #tech-form-slot lub zamieniający wiersz -->
+<tr id="tech-form">
+  <td colspan="5">
+    <form {% if tech %}
+            hx-put="/modules/projekty/{{ project_id }}/technologies/{{ tech.id }}"
+            hx-target="#tech-{{ tech.id }}" hx-swap="outerHTML"
+          {% else %}
+            hx-post="/modules/projekty/{{ project_id }}/technologies"
+            hx-target="#tech-list" hx-swap="beforeend"
+          {% endif %}>
+      <div class="flex gap-2 items-end flex-wrap">
+        <select name="category" required class="select select-sm select-bordered">
+          {% for cat in tech_categories %}
+            <option value="{{ cat.value }}"
+              {% if tech and tech.category == cat.value %}selected{% endif %}>
+              {{ cat.value }}
+            </option>
+          {% endfor %}
+        </select>
+        <input name="name" required class="input input-sm input-bordered"
+               placeholder="Technologia" value="{{ tech.name if tech else '' }}" />
+        <input name="version" class="input input-sm input-bordered w-24"
+               placeholder="Wersja" value="{{ tech.version if tech else '' }}" />
+        <input name="description" class="input input-sm input-bordered"
+               placeholder="Opis (opcjonalny)" value="{{ tech.description if tech else '' }}" />
+        <button type="submit" class="btn btn-primary btn-sm">
+          {% if tech %}Zapisz{% else %}Dodaj{% endif %}
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm"
+                onclick="this.closest('tr').remove()">Anuluj</button>
+      </div>
+    </form>
+  </td>
+</tr>

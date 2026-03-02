@@ -1,0 +1,116 @@
+<!-- Karta serwera — HTML partial z sidebare'm -->
+{% extends "../_layout.html" %}
+
+{% block content %}
+  <div class="space-y-6">
+
+  <!-- Nagłówek serwera — nazwa + status -->
+  <div class="flex justify-between items-start border-b border-base-300 pb-4 mb-6">
+    <h2 class="text-3xl font-bold">{{ server.name }}</h2>
+    <span class="badge badge-lg {{ 'badge-success' if server.status == 'Aktywny' else 'badge-error' }}">
+      {{ server.status }}
+    </span>
+  </div>
+
+  <!-- Informacje o serwerze -->
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <h3 class="card-title">Szczegóły serwera</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Hostname / IP</p>
+          <p class="font-mono">{{ server.hostname }}</p>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Typ</p>
+          <p><span class="badge badge-outline">{{ server.server_type }}</span></p>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">System operacyjny</p>
+          <p>{{ server.operating_system or '—' }}</p>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Dodano</p>
+          <p>{{ server.created_at.strftime('%d.%m.%Y %H:%M') if server.created_at else '—' }}</p>
+        </div>
+        {% if server.description %}
+        <div class="col-span-2">
+          <p class="text-sm font-semibold text-base-content/70">Opis</p>
+          <p class="whitespace-pre-line">{{ server.description }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Projekty korzystające z tego serwera (jako Dev lub Prod) -->
+  {% if related_projects %}
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <h3 class="card-title">Projekty korzystające z tego serwera</h3>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Kod</th>
+            <th>Nazwa</th>
+            <th>Rola</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in related_projects %}
+          <tr>
+            <td><span class="badge badge-ghost">{{ project.code }}</span></td>
+            <td>
+              <a class="link link-hover link-primary cursor-pointer"
+                 hx-get="/modules/projekty/{{ project.id }}"
+                 hx-target="#main-content"
+                 hx-swap="innerHTML">
+                {{ project.name }}
+              </a>
+            </td>
+            <td>
+              {% if project.dev_server_id == server.id and project.prod_server_id == server.id %}
+                <span class="badge badge-sm badge-outline">Dev + Prod</span>
+              {% elif project.dev_server_id == server.id %}
+                <span class="badge badge-sm badge-outline">Dev</span>
+              {% else %}
+                <span class="badge badge-sm badge-outline">Prod</span>
+              {% endif %}
+            </td>
+            <td>{{ project.status }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Przyciski akcji na dole karty serwera -->
+  <div class="flex justify-between items-center border-t border-base-300 pt-4">
+    <button class="btn btn-ghost btn-sm"
+            hx-get="/modules/projekty/servers"
+            hx-target="#main-content"
+            hx-swap="innerHTML">
+      ← Wróć do listy
+    </button>
+    <div class="flex gap-2">
+      <button class="btn btn-outline btn-sm"
+              hx-get="/modules/projekty/servers/{{ server.id }}/edit"
+              hx-target="#main-content"
+              hx-swap="innerHTML">
+        Edytuj
+      </button>
+      <button class="btn btn-error btn-sm"
+              hx-delete="/modules/projekty/servers/{{ server.id }}"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+              hx-confirm="Czy na pewno chcesz usunąć serwer {{ server.name }}?">
+        Usuń
+      </button>
+    </div>
+  </div>
+
+  </div>
+{% endblock %}

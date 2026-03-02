@@ -19,3 +19,10 @@ services:
       - ./module-issues:/app
     ports:
       - "8002:8000"
+
+  module-projekty:
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      - ./module-projekty:/app
+    ports:
+      - "8003:8000"

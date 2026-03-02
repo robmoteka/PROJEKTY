@@ -1,0 +1,31 @@
+<!-- Wiersz tabeli serwera — partial dla pętli {% for server in servers %} -->
+<tr id="server-{{ server.id }}">
+  <td>
+    <!-- Klikalny link do karty serwera -->
+    <a class="link link-hover link-primary cursor-pointer"
+       hx-get="/modules/projekty/servers/{{ server.id }}"
+       hx-target="#main-content"
+       hx-swap="innerHTML">
+      {{ server.name }}
+    </a>
+  </td>
+  <td>{{ server.hostname }}</td>
+  <td><span class="badge badge-sm">{{ server.server_type }}</span></td>
+  <td>{{ server.operating_system or '—' }}</td>
+  <td>
+    <span class="badge badge-sm {{ 'badge-success' if server.status == 'Aktywny' else 'badge-error' }}">
+      {{ server.status }}
+    </span>
+  </td>
+  <td class="flex gap-1">
+    <button class="btn btn-ghost btn-xs"
+            hx-get="/modules/projekty/servers/{{ server.id }}/edit"
+            hx-target="#main-content"
+            hx-swap="innerHTML">Edytuj</button>
+    <button class="btn btn-ghost btn-xs text-error"
+            hx-delete="/modules/projekty/servers/{{ server.id }}"
+            hx-target="#server-{{ server.id }}"
+            hx-swap="outerHTML"
+            hx-confirm="Czy na pewno chcesz usunąć serwer {{ server.name }}?">Usuń</button>
+  </td>
+</tr>

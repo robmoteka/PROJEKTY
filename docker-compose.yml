@@ -10,6 +10,7 @@ services:
     depends_on:
       - shell
       - module-issues
+      - module-projekty
 
   shell:
     build: ./shell
@@ -27,6 +28,14 @@ services:
   module-issues:
     build: ./module-issues
     container_name: module-issues
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  module-projekty:
+    build: ./module-projekty
+    container_name: module-projekty
     env_file:
       - .env
     depends_on:

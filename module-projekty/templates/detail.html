@@ -1,0 +1,238 @@
+<!-- Karta projektu — HTML partial z sidebare'm -->
+{% extends "_layout.html" %}
+
+{% block content %}
+  <div class="space-y-6">
+
+  <!-- Nagłówek projektu — kod + nazwa + status -->
+  <div class="flex justify-between items-start border-b border-base-300 pb-4 mb-6">
+    <div>
+      <span class="badge badge-ghost badge-lg mb-2">{{ project.code }}</span>
+      <h2 class="text-3xl font-bold">{{ project.name }}</h2>
+    </div>
+    <span class="badge badge-outline badge-lg">{{ project.status }}</span>
+  </div>
+
+  <!-- SEKCJA 1: Informacje główne -->
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <h3 class="card-title">Informacje o projekcie</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Właściciel</p>
+          <p>{{ project.owner_name or '—' }}</p>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Data rozpoczęcia</p>
+          <p>{% if project.start_date %}{{ project.start_date.strftime('%d.%m.%Y') }}{% else %}—{% endif %}</p>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Data zakończenia</p>
+          <p>{% if project.end_date %}{{ project.end_date.strftime('%d.%m.%Y') }}{% else %}—{% endif %}</p>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Utworzono</p>
+          <p>{{ project.created_at.strftime('%d.%m.%Y %H:%M') if project.created_at else '—' }}</p>
+        </div>
+        {% if project.problem_statement %}
+        <div class="col-span-2">
+          <p class="text-sm font-semibold text-base-content/70">Opis / Problem</p>
+          <p class="whitespace-pre-line">{{ project.problem_statement }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- SEKCJA 2: KPI (Kluczowe Wskaźniki Sukcesu) -->
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <div class="flex justify-between items-center">
+        <h3 class="card-title">Kluczowe Wskaźniki Sukcesu (KPI)</h3>
+        <button class="btn btn-primary btn-sm"
+                hx-get="/modules/projekty/{{ project.id }}/kpis/create"
+                hx-target="#kpi-form-slot"
+                hx-swap="innerHTML">
+          + Dodaj KPI
+        </button>
+      </div>
+      <!-- Slot na inline formularz KPI -->
+      <div id="kpi-form-slot" class="mb-4"></div>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Wskaźnik</th>
+            <th>Cel</th>
+            <th>Aktualnie</th>
+            <th>Jednostka</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="kpi-list">
+          {% for kpi in project.kpis %}
+            {% include "partials/kpi_row.html" %}
+          {% else %}
+            <tr id="kpi-empty">
+              <td colspan="5" class="text-center text-base-content/50">Brak KPI</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SEKCJA 3: Architektura i Stos Technologiczny -->
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <div class="flex justify-between items-center">
+        <h3 class="card-title">Architektura i Stos Technologiczny</h3>
+        <button class="btn btn-primary btn-sm"
+                hx-get="/modules/projekty/{{ project.id }}/technologies/create"
+                hx-target="#tech-form-slot"
+                hx-swap="innerHTML">
+          + Dodaj technologię
+        </button>
+      </div>
+      <!-- Slot na inline formularz technologii -->
+      <div id="tech-form-slot"></div>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Kategoria</th>
+            <th>Technologia</th>
+            <th>Wersja</th>
+            <th>Opis</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="tech-list">
+          {% for tech in project.technologies %}
+            {% include "partials/tech_row.html" %}
+          {% else %}
+            <tr id="tech-empty">
+              <td colspan="5" class="text-center text-base-content/50">Brak technologii</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SEKCJA 4: Zakres Projektu (Scope) -->
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <div class="flex justify-between items-center">
+        <h3 class="card-title">Zakres Projektu</h3>
+        <button class="btn btn-primary btn-sm"
+                hx-get="/modules/projekty/{{ project.id }}/scope/create"
+                hx-target="#scope-form-slot"
+                hx-swap="innerHTML">
+          + Dodaj element zakresu
+        </button>
+      </div>
+      <!-- Slot na inline formularz zakresu -->
+      <div id="scope-form-slot"></div>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Kategoria</th>
+            <th>Opis</th>
+            <th>Priorytet</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="scope-list">
+          {% for item in project.scope_items %}
+            {% include "partials/scope_row.html" %}
+          {% else %}
+            <tr id="scope-empty">
+              <td colspan="4" class="text-center text-base-content/50">Brak elementów zakresu</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SEKCJA 5: Infrastruktura — serwery + porty -->
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <h3 class="card-title">Infrastruktura</h3>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Serwer Dev</p>
+          <p>{% if project.dev_server %}{{ project.dev_server.name }} ({{ project.dev_server.hostname }}){% else %}—{% endif %}</p>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Serwer Prod</p>
+          <p>{% if project.prod_server %}{{ project.prod_server.name }} ({{ project.prod_server.hostname }}){% else %}—{% endif %}</p>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-base-content/70">Zakres portów</p>
+          <p>{% if project.port_range_start and project.port_range_end %}{{ project.port_range_start }}–{{ project.port_range_end }}{% else %}—{% endif %}</p>
+        </div>
+      </div>
+
+      <!-- Tabela indywidualnych portów przypisanych do projektu -->
+      <div class="flex justify-between items-center mb-2">
+        <h4 class="font-semibold">Przypisane porty</h4>
+        <button class="btn btn-primary btn-xs"
+                hx-get="/modules/projekty/{{ project.id }}/ports/create"
+                hx-target="#port-form-slot"
+                hx-swap="innerHTML">
+          + Dodaj port
+        </button>
+      </div>
+      <!-- Slot na inline formularz portu -->
+      <div id="port-form-slot"></div>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Port</th>
+            <th>Protokół</th>
+            <th>Usługa</th>
+            <th>Opis</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="port-list">
+          {% for port in project.ports %}
+            {% include "partials/port_row.html" %}
+          {% else %}
+            <tr id="port-empty">
+              <td colspan="5" class="text-center text-base-content/50">Brak portów</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Przyciski akcji na dole karty projektu -->
+  <div class="flex justify-between items-center border-t border-base-300 pt-4">
+    <button class="btn btn-ghost btn-sm"
+            hx-get="/modules/projekty/"
+            hx-target="#main-content"
+            hx-swap="innerHTML">
+      ← Wróć do listy
+    </button>
+    <div class="flex gap-2">
+      <button class="btn btn-outline btn-sm"
+              hx-get="/modules/projekty/{{ project.id }}/edit"
+              hx-target="#main-content"
+              hx-swap="innerHTML">
+        Edytuj
+      </button>
+      <button class="btn btn-error btn-sm"
+              hx-delete="/modules/projekty/{{ project.id }}"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+              hx-confirm="Czy na pewno chcesz usunąć projekt {{ project.code }}?"
+              hx-on::after-request="htmx.ajax('GET', '/modules/projekty/', {target: '#main-content'})">
+        Usuń
+      </button>
+    </div>
+  </div>
+
+  </div>
+{% endblock %}
