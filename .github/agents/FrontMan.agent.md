@@ -61,6 +61,8 @@ Przed pisaniem kodu UI **ZAWSZE** przeczytaj:
 
 Zawiera: **65 komponentów** z klasami CSS, system kolorów semantycznych, gotowe wzorce CRUD dla IT Project OS i cheatsheet potrzeb → komponentów.
 
+Zawsze używaj ikon Heroicons Outline jako inline SVG z `stroke="currentColor"` i `fill="none"` — steruj kolorem przez klasę rodzica (`text-primary`, `text-error`). Nigdy nie używaj zewnętrznych bibliotek ikon ani `<img>` dla ikon UI. Akcje w tabelach tylko ikonami bez tekstu, z `aria-label` dla dostępności.
+
 ## Format Odpowiedzi (Jinja2)
 
 - Generuj czysty HTML z placeholderami Jinja2: `{{ variable }}`, `{% for item in items %}`, `{% if condition %}`.

@@ -80,3 +80,9 @@ body.htmx-request #htmx-loading {
   letter-spacing: 0.05em;
   user-select: none;
 }
+
+/* Linki zawsze w kolorze primary — blokada domyślnego fioletu przeglądarki po odwiedzeniu */
+a,
+a:visited {
+  color: oklch(var(--p));
+}

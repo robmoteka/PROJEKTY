@@ -13,6 +13,7 @@ from typing import Annotated, AsyncGenerator
 
 from fastapi import Depends, FastAPI, Form, Request, Response
 from fastapi.responses import HTMLResponse
+from sqlalchemy.exc import IntegrityError
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -403,9 +404,24 @@ def create_server_submit(
         description=_none_if_empty(description),
         status=ServerStatus(status),
     )
-    # Zapisujemy serwer do bazy danych
-    crud.create_server(db, server_data)
-    # Zwracamy odświeżoną listę serwerów
+    try:
+        # Zapisujemy serwer do bazy danych
+        crud.create_server(db, server_data)
+    except IntegrityError:
+        # Naruszenie ograniczenia unikalności — cofamy transakcję i zwracamy formularz z błędem
+        db.rollback()
+        return templates.TemplateResponse(
+            request,
+            "servers/form.html",
+            {
+                "server": None,
+                "server_types": list(ServerType),
+                "server_statuses": list(ServerStatus),
+                "active_section": "servers",
+                "error": f"Serwer o nazwie \u201e{name}\u201c już istnieje. Wybierz inną nazwę.",
+            },
+        )
+    # Zwracamy odświeżoną listę serwerów po pomyślnym zapisie
     servers = crud.get_servers(db)
     return templates.TemplateResponse(
         request,

@@ -61,8 +61,8 @@
     <progress class="progress progress-primary w-full h-0.5"></progress>
   </div>
 
-  <!-- Kontener głównej treści — cel dla HTMX swap -->
-  <main id="main-content" class="container mx-auto p-6">
+  <!-- Kontener głównej treści — cel dla HTMX swap; bez container/mx-auto, moduły same zarządzają max-width -->
+  <main id="main-content" class="w-full p-6">
     {% block content %}{% endblock %}
   </main>
 

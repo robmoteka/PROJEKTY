@@ -1,144 +1,105 @@
-<!-- Karta projektu — HTML partial z sidebare'm -->
+<!-- Karta projektu z zakładkami DaisyUI — HTML partial z sidebare'm -->
 {% extends "_layout.html" %}
 
 {% block content %}
-  <div class="space-y-6">
+<div class="space-y-4">
 
-  <!-- Nagłówek projektu — kod + nazwa + status -->
-  <div class="flex justify-between items-start border-b border-base-300 pb-4 mb-6">
-    <div>
-      <span class="badge badge-ghost badge-lg mb-2">{{ project.code }}</span>
-      <h2 class="text-3xl font-bold">{{ project.name }}</h2>
-    </div>
-    <span class="badge badge-outline badge-lg">{{ project.status }}</span>
-  </div>
-
-  <!-- SEKCJA 1: Informacje główne -->
-  <div class="card bg-base-100 shadow">
-    <div class="card-body">
-      <h3 class="card-title">Informacje o projekcie</h3>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <p class="text-sm font-semibold text-base-content/70">Właściciel</p>
-          <p>{{ project.owner_name or '—' }}</p>
-        </div>
-        <div>
-          <p class="text-sm font-semibold text-base-content/70">Data rozpoczęcia</p>
-          <p>{% if project.start_date %}{{ project.start_date.strftime('%d.%m.%Y') }}{% else %}—{% endif %}</p>
-        </div>
-        <div>
-          <p class="text-sm font-semibold text-base-content/70">Data zakończenia</p>
-          <p>{% if project.end_date %}{{ project.end_date.strftime('%d.%m.%Y') }}{% else %}—{% endif %}</p>
-        </div>
-        <div>
-          <p class="text-sm font-semibold text-base-content/70">Utworzono</p>
-          <p>{{ project.created_at.strftime('%d.%m.%Y %H:%M') if project.created_at else '—' }}</p>
-        </div>
-        {% if project.problem_statement %}
-        <div class="col-span-2">
-          <p class="text-sm font-semibold text-base-content/70">Opis / Problem</p>
-          <p class="whitespace-pre-line">{{ project.problem_statement }}</p>
-        </div>
+  <!-- ── Nagłówek projektu: kod + nazwa + status + akcje ──────────────────── -->
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 border-b border-base-300 pb-5">
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="badge badge-neutral badge-lg font-mono tracking-widest">{{ project.code }}</span>
+        <span class="badge badge-outline badge-lg">{{ project.status }}</span>
+      </div>
+      <h2 class="text-3xl font-bold leading-tight">{{ project.name }}</h2>
+      <div class="flex flex-wrap gap-4 text-sm text-base-content/60 mt-1">
+        {% if project.owner_name %}
+          <span class="flex items-center gap-1">
+            <!-- Ikona: użytkownik -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+            {{ project.owner_name }}
+          </span>
+        {% endif %}
+        {% if project.start_date %}
+          <span class="flex items-center gap-1">
+            <!-- Ikona: kalendarz -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+            </svg>
+            {{ project.start_date.strftime('%d.%m.%Y') }}
+            {% if project.end_date %} – {{ project.end_date.strftime('%d.%m.%Y') }}{% endif %}
+          </span>
         {% endif %}
       </div>
     </div>
-  </div>
 
-  <!-- SEKCJA 2: KPI (Kluczowe Wskaźniki Sukcesu) -->
-  <div class="card bg-base-100 shadow">
-    <div class="card-body">
-      <div class="flex justify-between items-center">
-        <h3 class="card-title">Kluczowe Wskaźniki Sukcesu (KPI)</h3>
-        <button class="btn btn-primary btn-sm"
-                hx-get="/modules/projekty/{{ project.id }}/kpis/create"
-                hx-target="#kpi-form-slot"
-                hx-swap="innerHTML">
-          + Dodaj KPI
-        </button>
-      </div>
-      <!-- Slot na inline formularz KPI -->
-      <div id="kpi-form-slot" class="mb-4"></div>
-      <table class="table table-sm">
-        <thead>
-          <tr>
-            <th>Wskaźnik</th>
-            <th>Cel</th>
-            <th>Aktualnie</th>
-            <th>Jednostka</th>
-            <th>Akcje</th>
-          </tr>
-        </thead>
-        <tbody id="kpi-list">
-          {% for kpi in project.kpis %}
-            {% include "partials/kpi_row.html" %}
-          {% else %}
-            <tr id="kpi-empty">
-              <td colspan="5" class="text-center text-base-content/50">Brak KPI</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <!-- Przyciski akcji w nagłówku -->
+    <div class="flex gap-2 flex-shrink-0">
+      <!-- Przycisk edycji projektu — ikona ołówka -->
+      <button class="btn btn-outline btn-sm btn-square"
+              title="Edytuj"
+              aria-label="Edytuj"
+              hx-get="/modules/projekty/{{ project.id }}/edit"
+              hx-target="#main-content"
+              hx-swap="innerHTML">
+        <!-- Ikona: ołówek -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+        </svg>
+      </button>
+      <!-- Przycisk usunięcia projektu — ikona kosza -->
+      <button class="btn btn-error btn-sm btn-square"
+              title="Usuń"
+              aria-label="Usuń"
+              hx-delete="/modules/projekty/{{ project.id }}"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+              hx-confirm="Czy na pewno chcesz usunąć projekt {{ project.code }}?"
+              hx-on::after-request="htmx.ajax('GET', '/modules/projekty/', {target: '#main-content'})">
+        <!-- Ikona: kosz -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+        </svg>
+      </button>
     </div>
   </div>
 
-  <!-- SEKCJA 3: Architektura i Stos Technologiczny -->
-  <div class="card bg-base-100 shadow">
-    <div class="card-body">
-      <div class="flex justify-between items-center">
-        <h3 class="card-title">Architektura i Stos Technologiczny</h3>
-        <button class="btn btn-primary btn-sm"
-                hx-get="/modules/projekty/{{ project.id }}/technologies/create"
-                hx-target="#tech-form-slot"
-                hx-swap="innerHTML">
-          + Dodaj technologię
-        </button>
-      </div>
-      <!-- Slot na inline formularz technologii -->
-      <div id="tech-form-slot"></div>
-      <table class="table table-sm">
-        <thead>
-          <tr>
-            <th>Kategoria</th>
-            <th>Technologia</th>
-            <th>Wersja</th>
-            <th>Opis</th>
-            <th>Akcje</th>
-          </tr>
-        </thead>
-        <tbody id="tech-list">
-          {% for tech in project.technologies %}
-            {% include "partials/tech_row.html" %}
-          {% else %}
-            <tr id="tech-empty">
-              <td colspan="5" class="text-center text-base-content/50">Brak technologii</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <!-- ── Zakładki DaisyUI (radio-based — czyste CSS) ───────────────────────── -->
+  <div role="tablist" class="tabs tabs-lifted tabs-lg">
 
-  <!-- SEKCJA 4: Zakres Projektu (Scope) -->
-  <div class="card bg-base-100 shadow">
-    <div class="card-body">
-      <div class="flex justify-between items-center">
-        <h3 class="card-title">Zakres Projektu</h3>
-        <button class="btn btn-primary btn-sm"
+    <!-- ════ ZAKŁADKA 1: ZAKRES ════ -->
+    <input type="radio" name="project_tabs_{{ project.id }}" role="tab" class="tab font-semibold"
+           aria-label="Zakres" checked />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box rounded-tl-none p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold">Zakres Projektu</h3>
+        <!-- Przycisk dodania elementu zakresu -->
+        <button class="btn btn-primary btn-sm btn-square"
+                title="Dodaj element zakresu"
+                aria-label="Dodaj element zakresu"
                 hx-get="/modules/projekty/{{ project.id }}/scope/create"
                 hx-target="#scope-form-slot"
                 hx-swap="innerHTML">
-          + Dodaj element zakresu
+          <!-- Ikona: plus -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
         </button>
       </div>
-      <!-- Slot na inline formularz zakresu -->
-      <div id="scope-form-slot"></div>
-      <table class="table table-sm">
+
+
+      <!-- Slot na formularz inline -->
+      <div id="scope-form-slot" class="mb-3"></div>
+
+      <table class="table table-sm table-zebra w-full">
         <thead>
           <tr>
             <th>Kategoria</th>
             <th>Opis</th>
             <th>Priorytet</th>
-            <th>Akcje</th>
+            <th class="w-24">Akcje</th>
           </tr>
         </thead>
         <tbody id="scope-list">
@@ -146,53 +107,464 @@
             {% include "partials/scope_row.html" %}
           {% else %}
             <tr id="scope-empty">
-              <td colspan="4" class="text-center text-base-content/50">Brak elementów zakresu</td>
+              <td colspan="4" class="text-center py-8 text-base-content/40">
+                <div class="flex flex-col items-center gap-2">
+                  <!-- Ikona: lista -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                  </svg>
+                  Brak elementów zakresu
+                </div>
+              </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-  </div>
 
-  <!-- SEKCJA 5: Infrastruktura — serwery + porty -->
-  <div class="card bg-base-100 shadow">
-    <div class="card-body">
-      <h3 class="card-title">Infrastruktura</h3>
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <p class="text-sm font-semibold text-base-content/70">Serwer Dev</p>
-          <p>{% if project.dev_server %}{{ project.dev_server.name }} ({{ project.dev_server.hostname }}){% else %}—{% endif %}</p>
+    <!-- ════ ZAKŁADKA 2: ZESPÓŁ (mock) ════ -->
+    <input type="radio" name="project_tabs_{{ project.id }}" role="tab" class="tab font-semibold"
+           aria-label="Zespół" />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold">Zespół projektowy</h3>
+        <!-- Przycisk dodania członka (w trakcie implementacji) -->
+        <button class="btn btn-primary btn-sm btn-square btn-disabled" disabled title="Dodaj członka" aria-label="Dodaj członka">
+          <!-- Ikona: plus -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mock — placeholderowe karty członków zespołu -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Mock: Product Owner -->
+        <div class="card bg-base-200 shadow-sm">
+          <div class="card-body p-4 flex flex-row items-center gap-3">
+            <div class="avatar placeholder">
+              <div class="bg-primary text-primary-content rounded-full w-12">
+                <span class="text-lg font-bold">PO</span>
+              </div>
+            </div>
+            <div>
+              <p class="font-semibold text-sm">{{ project.owner_name or 'Product Owner' }}</p>
+              <p class="text-xs text-base-content/50">Product Owner</p>
+            </div>
+            <div class="badge badge-success badge-sm ml-auto">aktywny</div>
+          </div>
         </div>
-        <div>
-          <p class="text-sm font-semibold text-base-content/70">Serwer Prod</p>
-          <p>{% if project.prod_server %}{{ project.prod_server.name }} ({{ project.prod_server.hostname }}){% else %}—{% endif %}</p>
+        <!-- Mock: Developer 1 -->
+        <div class="card bg-base-200 shadow-sm opacity-50">
+          <div class="card-body p-4 flex flex-row items-center gap-3">
+            <div class="avatar placeholder">
+              <div class="bg-secondary text-secondary-content rounded-full w-12">
+                <span class="text-lg font-bold">D1</span>
+              </div>
+            </div>
+            <div>
+              <p class="font-semibold text-sm">Developer 1</p>
+              <p class="text-xs text-base-content/50">Backend Dev</p>
+            </div>
+            <div class="badge badge-ghost badge-sm ml-auto">mock</div>
+          </div>
         </div>
-        <div>
-          <p class="text-sm font-semibold text-base-content/70">Zakres portów</p>
-          <p>{% if project.port_range_start and project.port_range_end %}{{ project.port_range_start }}–{{ project.port_range_end }}{% else %}—{% endif %}</p>
+        <!-- Mock: Developer 2 -->
+        <div class="card bg-base-200 shadow-sm opacity-50">
+          <div class="card-body p-4 flex flex-row items-center gap-3">
+            <div class="avatar placeholder">
+              <div class="bg-accent text-accent-content rounded-full w-12">
+                <span class="text-lg font-bold">D2</span>
+              </div>
+            </div>
+            <div>
+              <p class="font-semibold text-sm">Developer 2</p>
+              <p class="text-xs text-base-content/50">Frontend Dev</p>
+            </div>
+            <div class="badge badge-ghost badge-sm ml-auto">mock</div>
+          </div>
         </div>
       </div>
 
-      <!-- Tabela indywidualnych portów przypisanych do projektu -->
-      <div class="flex justify-between items-center mb-2">
-        <h4 class="font-semibold">Przypisane porty</h4>
-        <button class="btn btn-primary btn-xs"
+      <div class="alert alert-warning alert-sm mt-6">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <span class="text-xs">Zakładka Zespół jest w trakcie implementacji (mock).</span>
+      </div>
+    </div>
+
+    <!-- ════ ZAKŁADKA 3: ISSUES (mock) ════ -->
+    <input type="radio" name="project_tabs_{{ project.id }}" role="tab" class="tab font-semibold"
+           aria-label="Issues" />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold">Zgłoszenia (Issues)</h3>
+        <a class="btn btn-primary btn-sm"
+           hx-get="/modules/issues/"
+           hx-target="#main-content"
+           hx-push-url="true">
+          Przejdź do modułu Issues
+        </a>
+      </div>
+
+      <!-- Mock statystyki issues -->
+      <div class="stats stats-vertical sm:stats-horizontal shadow w-full mb-6">
+        <div class="stat">
+          <div class="stat-figure text-base-content/40">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+          </div>
+          <div class="stat-title">Otwarte</div>
+          <div class="stat-value">—</div>
+          <div class="stat-desc">mock</div>
+        </div>
+        <div class="stat">
+          <div class="stat-figure text-base-content/40">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <div class="stat-title">W toku</div>
+          <div class="stat-value">—</div>
+          <div class="stat-desc">mock</div>
+        </div>
+        <div class="stat">
+          <div class="stat-figure text-base-content/40">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <div class="stat-title">Zamknięte</div>
+          <div class="stat-value">—</div>
+          <div class="stat-desc">mock</div>
+        </div>
+      </div>
+
+      <div class="alert alert-warning alert-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <span class="text-xs">Integracja z modułem Issues jest w trakcie implementacji (mock). Dane będą ładowane automatycznie po filtracji po kodzie projektu.</span>
+      </div>
+    </div>
+
+    <!-- ════ ZAKŁADKA 4: ZADANIA (mock) ════ -->
+    <input type="radio" name="project_tabs_{{ project.id }}" role="tab" class="tab font-semibold"
+           aria-label="Zadania" />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold">Zadania</h3>
+        <!-- Przycisk dodania zadania (w trakcie implementacji) -->
+        <button class="btn btn-primary btn-sm btn-square btn-disabled" disabled title="Dodaj zadanie" aria-label="Dodaj zadanie">
+          <!-- Ikona: plus -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mock — przykładowe zadania w stylu Kanban-lite -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Kolumna: Do zrobienia -->
+        <div class="bg-base-200 rounded-box p-3">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="badge badge-ghost badge-sm">Do zrobienia</div>
+            <span class="text-xs text-base-content/40">mock</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="card bg-base-100 shadow-sm opacity-50">
+              <div class="card-body p-3">
+                <p class="text-sm font-medium">Przykładowe zadanie A</p>
+                <div class="flex gap-1 flex-wrap">
+                  <span class="badge badge-outline badge-xs">backend</span>
+                </div>
+              </div>
+            </div>
+            <div class="card bg-base-100 shadow-sm opacity-50">
+              <div class="card-body p-3">
+                <p class="text-sm font-medium">Przykładowe zadanie B</p>
+                <div class="flex gap-1 flex-wrap">
+                  <span class="badge badge-outline badge-xs">frontend</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Kolumna: W toku -->
+        <div class="bg-base-200 rounded-box p-3">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="badge badge-warning badge-sm">W toku</div>
+            <span class="text-xs text-base-content/40">mock</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="card bg-base-100 shadow-sm opacity-50">
+              <div class="card-body p-3">
+                <p class="text-sm font-medium">Przykładowe zadanie C</p>
+                <div class="flex gap-1 flex-wrap">
+                  <span class="badge badge-warning badge-xs">high priority</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Kolumna: Gotowe -->
+        <div class="bg-base-200 rounded-box p-3">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="badge badge-success badge-sm">Gotowe</div>
+            <span class="text-xs text-base-content/40">mock</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="card bg-base-100 shadow-sm opacity-50">
+              <div class="card-body p-3">
+                <p class="text-sm font-medium">Przykładowe zadanie D</p>
+                <div class="flex gap-1 flex-wrap">
+                  <span class="badge badge-success badge-xs">done</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-warning alert-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <span class="text-xs">Moduł Zadania jest w trakcie implementacji (mock).</span>
+      </div>
+    </div>
+
+    <!-- ════ ZAKŁADKA 5: KPI ════ -->
+    <input type="radio" name="project_tabs_{{ project.id }}" role="tab" class="tab font-semibold"
+           aria-label="KPI" />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold">Kluczowe Wskaźniki Sukcesu</h3>
+        <!-- Przycisk dodania KPI -->
+        <button class="btn btn-primary btn-sm btn-square"
+                title="Dodaj KPI"
+                aria-label="Dodaj KPI"
+                hx-get="/modules/projekty/{{ project.id }}/kpis/create"
+                hx-target="#kpi-form-slot"
+                hx-swap="innerHTML">
+          <!-- Ikona: plus -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Karty statystyczne KPI (wizualizacja przed tabelą) -->
+      {% if project.kpis %}
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+        {% for kpi in project.kpis %}
+        <div class="stat bg-base-200 rounded-box p-3">
+          <div class="stat-title text-xs truncate">{{ kpi.name }}</div>
+          <div class="stat-value text-2xl">
+            {{ kpi.current_value if kpi.current_value is not none else '—' }}
+            {% if kpi.unit %}<span class="text-sm font-normal text-base-content/50">{{ kpi.unit }}</span>{% endif %}
+          </div>
+          <div class="stat-desc">
+            Cel: {{ kpi.target_value }}{% if kpi.unit %} {{ kpi.unit }}{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Slot na inline formularz KPI -->
+      <div id="kpi-form-slot" class="mb-3"></div>
+
+      <table class="table table-sm table-zebra w-full">
+        <thead>
+          <tr>
+            <th>Wskaźnik</th>
+            <th>Cel</th>
+            <th>Aktualnie</th>
+            <th>Jednostka</th>
+            <th class="w-24">Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="kpi-list">
+          {% for kpi in project.kpis %}
+            {% include "partials/kpi_row.html" %}
+          {% else %}
+            <tr id="kpi-empty">
+              <td colspan="5" class="text-center py-8 text-base-content/40">
+                <div class="flex flex-col items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+                  </svg>
+                  Brak KPI — dodaj pierwszy wskaźnik sukcesu
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════ ZAKŁADKA 6: TECHNOLOGIE ════ -->
+    <input type="radio" name="project_tabs_{{ project.id }}" role="tab" class="tab font-semibold"
+           aria-label="Technologie" />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold">Architektura i Stos Technologiczny</h3>
+        <!-- Przycisk dodania technologii -->
+        <button class="btn btn-primary btn-sm btn-square"
+                title="Dodaj technologię"
+                aria-label="Dodaj technologię"
+                hx-get="/modules/projekty/{{ project.id }}/technologies/create"
+                hx-target="#tech-form-slot"
+                hx-swap="innerHTML">
+          <!-- Ikona: plus -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Slot na inline formularz technologii -->
+      <div id="tech-form-slot" class="mb-3"></div>
+
+      <!-- Grupowanie technologii wg kategorii (wizualizacja kart) -->
+      {% if project.technologies %}
+      <div class="flex flex-wrap gap-2 mb-4">
+        {% set categories = project.technologies | map(attribute='category') | unique | list %}
+        {% for cat in categories %}
+          <div class="badge badge-outline gap-1 py-3">
+            <!-- Ikona: tagi -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+            </svg>
+            {{ cat or 'Inne' }}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <table class="table table-sm table-zebra w-full">
+        <thead>
+          <tr>
+            <th>Kategoria</th>
+            <th>Technologia</th>
+            <th>Wersja</th>
+            <th>Opis</th>
+            <th class="w-24">Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="tech-list">
+          {% for tech in project.technologies %}
+            {% include "partials/tech_row.html" %}
+          {% else %}
+            <tr id="tech-empty">
+              <td colspan="5" class="text-center py-8 text-base-content/40">
+                <div class="flex flex-col items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+                  </svg>
+                  Brak technologii
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════ ZAKŁADKA 7: INFRASTRUKTURA ════ -->
+    <input type="radio" name="project_tabs_{{ project.id }}" role="tab" class="tab font-semibold"
+           aria-label="Infrastruktura" />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+      <h3 class="text-lg font-bold mb-4">Infrastruktura</h3>
+
+      <!-- Karty serwerów -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <!-- Serwer Dev -->
+        <div class="card bg-base-200 shadow-sm">
+          <div class="card-body p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="badge badge-info badge-sm">DEV</div>
+              <h4 class="font-semibold text-sm">Serwer deweloperski</h4>
+            </div>
+            {% if project.dev_server %}
+              <p class="text-base font-medium">{{ project.dev_server.name }}</p>
+              <p class="text-xs text-base-content/50 font-mono">{{ project.dev_server.hostname }}</p>
+            {% else %}
+              <p class="text-sm text-base-content/40 italic">Nie przypisano</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Serwer Prod -->
+        <div class="card bg-base-200 shadow-sm">
+          <div class="card-body p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="badge badge-success badge-sm">PROD</div>
+              <h4 class="font-semibold text-sm">Serwer produkcyjny</h4>
+            </div>
+            {% if project.prod_server %}
+              <p class="text-base font-medium">{{ project.prod_server.name }}</p>
+              <p class="text-xs text-base-content/50 font-mono">{{ project.prod_server.hostname }}</p>
+            {% else %}
+              <p class="text-sm text-base-content/40 italic">Nie przypisano</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Zakres portów -->
+        <div class="card bg-base-200 shadow-sm">
+          <div class="card-body p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="badge badge-neutral badge-sm">PORTY</div>
+              <h4 class="font-semibold text-sm">Zarezerwowany zakres</h4>
+            </div>
+            {% if project.port_range_start and project.port_range_end %}
+              <p class="text-2xl font-mono font-bold text-primary">
+                {{ project.port_range_start }}
+                <span class="text-base-content/40 text-lg">–</span>
+                {{ project.port_range_end }}
+              </p>
+              <p class="text-xs text-base-content/50">
+                {{ project.port_range_end - project.port_range_start + 1 }} portów
+              </p>
+            {% else %}
+              <p class="text-sm text-base-content/40 italic">Nie określono</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela przypisanych portów -->
+      <div class="flex justify-between items-center mb-3">
+        <h4 class="font-semibold">Przypisane porty serwisów</h4>
+        <!-- Przycisk dodania portu -->
+        <button class="btn btn-primary btn-sm btn-square"
+                title="Dodaj port"
+                aria-label="Dodaj port"
                 hx-get="/modules/projekty/{{ project.id }}/ports/create"
                 hx-target="#port-form-slot"
                 hx-swap="innerHTML">
-          + Dodaj port
+          <!-- Ikona: plus -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
         </button>
       </div>
+
       <!-- Slot na inline formularz portu -->
-      <div id="port-form-slot"></div>
-      <table class="table table-sm">
+      <div id="port-form-slot" class="mb-3"></div>
+
+      <table class="table table-sm table-zebra w-full">
         <thead>
           <tr>
             <th>Port</th>
             <th>Protokół</th>
             <th>Usługa</th>
             <th>Opis</th>
-            <th>Akcje</th>
+            <th class="w-24">Akcje</th>
           </tr>
         </thead>
         <tbody id="port-list">
@@ -200,39 +572,37 @@
             {% include "partials/port_row.html" %}
           {% else %}
             <tr id="port-empty">
-              <td colspan="5" class="text-center text-base-content/50">Brak portów</td>
+              <td colspan="5" class="text-center py-8 text-base-content/40">
+                <div class="flex flex-col items-center gap-2">
+                  <!-- Ikona: wtyczka/sieć -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+                  </svg>
+                  Brak przypisanych portów
+                </div>
+              </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-  </div>
 
-  <!-- Przyciski akcji na dole karty projektu -->
-  <div class="flex justify-between items-center border-t border-base-300 pt-4">
+  </div>
+  <!-- ── Koniec zakładek ──────────────────────────────────────────────────── -->
+
+  <!-- Powrót do listy -->
+  <div class="border-t border-base-300 pt-4">
     <button class="btn btn-ghost btn-sm"
             hx-get="/modules/projekty/"
             hx-target="#main-content"
-            hx-swap="innerHTML">
-      ← Wróć do listy
+            hx-swap="innerHTML"
+            hx-push-url="true">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+      Wróć do listy projektów
     </button>
-    <div class="flex gap-2">
-      <button class="btn btn-outline btn-sm"
-              hx-get="/modules/projekty/{{ project.id }}/edit"
-              hx-target="#main-content"
-              hx-swap="innerHTML">
-        Edytuj
-      </button>
-      <button class="btn btn-error btn-sm"
-              hx-delete="/modules/projekty/{{ project.id }}"
-              hx-target="#main-content"
-              hx-swap="innerHTML"
-              hx-confirm="Czy na pewno chcesz usunąć projekt {{ project.code }}?"
-              hx-on::after-request="htmx.ajax('GET', '/modules/projekty/', {target: '#main-content'})">
-        Usuń
-      </button>
-    </div>
   </div>
 
-  </div>
+</div>
 {% endblock %}
